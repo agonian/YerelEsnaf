@@ -1,5 +1,8 @@
 import { Business, Category } from './types';
 
+// Admin phone number for receiving registration requests
+export const ADMIN_PHONE_NUMBER = '905550000000'; 
+
 export const MOCK_BUSINESSES: Business[] = [
   {
     id: '1',
@@ -7,10 +10,11 @@ export const MOCK_BUSINESSES: Business[] = [
     category: Category.FOOD,
     description: 'Yöresel ev yemekleri ve serpme kahvaltı.',
     address: 'Cumhuriyet Cad. No:12',
-    phone: '905551234567', // Format for WhatsApp link
+    phone: '905551234567', 
     imageUrl: 'https://picsum.photos/400/300?random=1',
     rating: 4.8,
     tags: ['kahvaltı', 'mantı', 'ev yemeği', 'bahçe'],
+    status: 'approved',
     isPromoted: true,
     offer: {
       title: 'Serpme Kahvaltıda %20 İndirim',
@@ -34,6 +38,7 @@ export const MOCK_BUSINESSES: Business[] = [
     imageUrl: 'https://picsum.photos/400/300?random=2',
     rating: 4.9,
     tags: ['düğün', 'nişan', 'kına', 'süsleme'],
+    status: 'approved',
     isPromoted: true,
     products: [
       { id: 'p1', name: 'Nişan Masası Süsleme', price: 3500, description: 'Arka fon, maket pasta, jardinyer seti.' },
@@ -50,6 +55,7 @@ export const MOCK_BUSINESSES: Business[] = [
     imageUrl: 'https://picsum.photos/400/300?random=3',
     rating: 4.5,
     tags: ['kuaför', 'makyaj', 'gelin başı'],
+    status: 'approved',
     offer: {
       title: 'Gelin Paketi Kampanyası',
       description: 'Saç + Makyaj + Cilt Bakımı sadece 2500 TL.',
@@ -71,6 +77,7 @@ export const MOCK_BUSINESSES: Business[] = [
     imageUrl: 'https://picsum.photos/400/300?random=4',
     rating: 4.2,
     tags: ['çiçek', 'gelin çiçeği', 'aranjman'],
+    status: 'approved',
     products: [
       { id: 'p1', name: 'Gül Buketi (10\'lu)', price: 600, description: 'İthal kırmızı güller.' },
       { id: 'p2', name: 'Orkide (Çift Dallı)', price: 850, description: 'Seramik saksıda.' }
@@ -86,6 +93,7 @@ export const MOCK_BUSINESSES: Business[] = [
     imageUrl: 'https://picsum.photos/400/300?random=5',
     rating: 4.7,
     tags: ['tamir', 'bakım', 'yağ değişimi'],
+    status: 'approved',
     products: [
       { id: 'p1', name: 'Periyodik Bakım', price: 1500, description: 'Yağ ve filtre değişimi (Parça hariç işçilik).' },
       { id: 'p2', name: 'Kışlık Bakım Kontrolü', price: 500, description: 'Antifriz ve lastik kontrolü.' }
@@ -101,6 +109,7 @@ export const MOCK_BUSINESSES: Business[] = [
     imageUrl: 'https://picsum.photos/400/300?random=6',
     rating: 4.9,
     tags: ['fotoğraf', 'düğün', 'video'],
+    status: 'approved',
     products: [
       { id: 'p1', name: 'Dış Çekim Albüm Paketi', price: 5000, description: 'Panoramik albüm + 2 aile albümü + poster.' },
       { id: 'p2', name: 'Düğün Hikayesi Klibi', price: 4000, description: 'Tüm gün video çekimi ve kurgu.' }
@@ -116,6 +125,7 @@ export const MOCK_BUSINESSES: Business[] = [
     imageUrl: 'https://picsum.photos/400/300?random=7',
     rating: 4.6,
     tags: ['burger', 'fast food', 'öğrenci dostu'],
+    status: 'approved',
     offer: {
       title: '2. Burger Bedava',
       description: 'Her Salı günü geçerli.',
@@ -138,6 +148,7 @@ export const MOCK_BUSINESSES: Business[] = [
     imageUrl: 'https://picsum.photos/400/300?random=8',
     rating: 5.0,
     tags: ['eczane', 'sağlık', 'kozmetik'],
+    status: 'approved',
     products: [
       { id: 'p1', name: 'Güneş Kremi 50+', price: 450, description: 'Hassas ciltler için.' },
       { id: 'p2', name: 'Vitamin C Serumu', price: 350, description: 'Aydınlatıcı etki.' }

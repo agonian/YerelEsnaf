@@ -1,21 +1,65 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import BusinessCard from './components/BusinessCard';
 import AIPlanner from './components/AIPlanner';
 import AdminPanel from './components/AdminPanel';
 import BusinessDetail from './components/BusinessDetail';
+import AuthModal from './components/AuthModal';
+import BusinessRegistration from './components/BusinessRegistration';
 import { MOCK_BUSINESSES } from './constants';
-import { Category, Business } from './types';
-import { Search, Filter, Rocket, Wallet } from 'lucide-react';
+import { Category, Business, User, UserRole } from './types';
+import { Search, Filter, Rocket, Wallet, Lock } from 'lucide-react';
 
 function App() {
-  const [currentView, setView] = useState('explore'); // explore, deals, planner, business, admin, detail
+  const [currentView, setView] = useState('explore'); 
   const [businesses, setBusinesses] = useState<Business[]>(MOCK_BUSINESSES);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Auth State
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Handle viewing details
+  // Load user from local storage (mock persistence)
+  useEffect(() => {
+    const savedUser = localStorage.getItem('mockUser');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLogin = (name: string, role: UserRole) => {
+    const user: User = {
+      id: Date.now().toString(),
+      name,
+      role
+    };
+    setCurrentUser(user);
+    localStorage.setItem('mockUser', JSON.stringify(user));
+    
+    // Redirect logic based on role
+    if (role === UserRole.ADMIN) {
+      setView('admin');
+    } else if (role === UserRole.BUSINESS) {
+      setView('business_register');
+    } else {
+      setView('explore');
+    }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('mockUser');
+    setView('explore');
+  };
+
+  const handleRegisterBusiness = (newBusiness: Business) => {
+    setBusinesses(prev => [newBusiness, ...prev]);
+    alert("Başvurunuz alındı! Yönlendiriliyorsunuz...");
+    setView('explore'); // Or show a success page
+  };
+
   const handleBusinessClick = (business: Business) => {
     setSelectedBusiness(business);
     setView('detail');
@@ -27,8 +71,12 @@ function App() {
     setView('explore');
   };
 
-  // Update navbar view change to clear selection if needed
   const handleSetView = (view: string) => {
+    // Basic Route Protection
+    if (view === 'admin' && currentUser?.role !== UserRole.ADMIN) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     setView(view);
     if (view !== 'detail') {
       setSelectedBusiness(null);
@@ -37,8 +85,12 @@ function App() {
 
   // Filtering Logic
   const filteredBusinesses = useMemo(() => {
-    // Re-filter from the state 'businesses' which might be updated by Admin
     return businesses.filter((business) => {
+      // Admin sees everything in admin panel, but 'explore' only shows approved
+      if (currentView === 'explore' || currentView === 'deals' || currentView === 'planner') {
+         if (business.status !== 'approved') return false;
+      }
+
       const matchesCategory = selectedCategory === 'All' || business.category === selectedCategory;
       const matchesSearch = business.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             business.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -55,13 +107,25 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      <Navbar currentView={currentView} setView={handleSetView} />
+      <Navbar 
+        currentView={currentView} 
+        setView={handleSetView} 
+        currentUser={currentUser}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onLogout={handleLogout}
+      />
+
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        onLogin={handleLogin} 
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* VIEW: EXPLORE & DEALS */}
         {(currentView === 'explore' || currentView === 'deals') && (
-          <div className="space-y-8">
+          <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Area */}
             <div className="bg-indigo-600 rounded-2xl p-8 md:p-12 text-white shadow-lg overflow-hidden relative">
               <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
@@ -149,58 +213,25 @@ function App() {
 
         {/* VIEW: ADMIN PANEL */}
         {currentView === 'admin' && (
-          <AdminPanel businesses={businesses} setBusinesses={setBusinesses} />
+          <AdminPanel 
+            businesses={businesses} 
+            setBusinesses={setBusinesses} 
+            currentUser={currentUser}
+          />
+        )}
+
+        {/* VIEW: BUSINESS REGISTRATION */}
+        {currentView === 'business_register' && (
+          <BusinessRegistration 
+            currentUser={currentUser} 
+            onRegister={handleRegisterBusiness}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+          />
         )}
 
         {/* VIEW: PLANNER */}
         {currentView === 'planner' && (
-          <AIPlanner businesses={businesses} />
-        )}
-
-        {/* VIEW: BUSINESS LANDING (For Monetization Idea) */}
-        {currentView === 'business' && (
-          <div className="max-w-3xl mx-auto space-y-12 pb-20">
-            <div className="text-center space-y-6 pt-10">
-              <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto text-indigo-600">
-                <Rocket size={32} />
-              </div>
-              <h1 className="text-4xl font-bold text-slate-900">İşletmenizi Büyütün</h1>
-              <p className="text-xl text-slate-600">
-                YerelEsnaf ile binlerce potansiyel müşteriye ulaşın. Kampanyalarınızı duyurun, satışlarınızı artırın.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Search className="text-indigo-600" />
-                  Görünür Olun
-                </h3>
-                <p className="text-slate-600">
-                  İlçedeki insanlar "en iyi kebapçı" veya "oto lastikçi" diye arattığında ilk sırada siz çıkın.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                   <Wallet className="text-green-600" />
-                   Kampanya Yayınlayın
-                </h3>
-                <p className="text-slate-600">
-                  Ölü saatlerinizi canlandırmak için anlık indirimler ve fırsatlar tanımlayın.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900 rounded-2xl p-8 text-white text-center">
-              <h2 className="text-2xl font-bold mb-4">Hemen Başvurun</h2>
-              <p className="text-slate-300 mb-8">
-                İlk aya özel ücretsiz deneme fırsatı ile yerinizi alın.
-              </p>
-              <button className="bg-indigo-500 hover:bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold transition-colors">
-                İşletme Hesabı Oluştur
-              </button>
-            </div>
-          </div>
+          <AIPlanner businesses={businesses.filter(b => b.status === 'approved')} />
         )}
 
       </main>

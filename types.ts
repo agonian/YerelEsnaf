@@ -9,6 +9,20 @@ export enum Category {
   OTHER = 'Diğer'
 }
 
+export enum UserRole {
+  GUEST = 'guest',
+  USER = 'user',
+  BUSINESS = 'business',
+  ADMIN = 'admin'
+}
+
+export interface User {
+  id: string;
+  name: string;
+  role: UserRole;
+  phone?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -26,7 +40,9 @@ export interface Business {
   imageUrl: string;
   rating: number;
   tags: string[];
-  isPromoted?: boolean; // For monetization (Ads)
+  status: 'pending' | 'approved' | 'rejected'; // New status field
+  ownerId?: string; // Link to user
+  isPromoted?: boolean;
   offer?: {
     title: string;
     description: string;
