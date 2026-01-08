@@ -211,7 +211,7 @@ function App() {
         onLogin={handleLogin} 
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
         
         {/* VIEW: EXPLORE & DEALS */}
         {(currentView === 'explore' || currentView === 'deals') && (
@@ -335,7 +335,7 @@ function App() {
                   </div>
 
                   {/* Results Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredBusinesses.length > 0 ? (
                       filteredBusinesses.map((business) => (
                         <BusinessCard 

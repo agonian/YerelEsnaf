@@ -141,53 +141,55 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
         </div>
       </div>
       
-      {/* Mobile Bottom Bar for quick access */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 px-2 z-50 pb-safe">
-         {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setView(item.id)}
-                className={`flex flex-col items-center space-y-1 ${
-                  currentView === item.id ? 'text-indigo-600' : 'text-slate-400'
-                }`}
-              >
-                {item.icon}
-                <span className="text-xs">{item.label}</span>
-              </button>
-            ))}
-            
-            {currentUser?.role === UserRole.ADMIN ? (
-               <button
-                onClick={() => setView('admin')}
-                className={`flex flex-col items-center space-y-1 ${
-                  currentView === 'admin' ? 'text-indigo-600' : 'text-slate-400'
-                }`}
-              >
-                <Shield size={20} />
-                <span className="text-xs">Admin</span>
-              </button>
-            ) : currentUser?.role === UserRole.BUSINESS ? (
-              <button
-                onClick={() => setView('business_dashboard')}
-                className={`flex flex-col items-center space-y-1 ${
-                  currentView === 'business_dashboard' ? 'text-indigo-600' : 'text-slate-400'
-                }`}
-              >
-                <LayoutDashboard size={20} />
-                <span className="text-xs">İşletmem</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => setView('business_register')}
-                className={`flex flex-col items-center space-y-1 ${
-                  currentView === 'business_register' ? 'text-indigo-600' : 'text-slate-400'
-                }`}
-              >
-                <Building2 size={20} />
-                <span className="text-xs">İşletme</span>
-              </button>
-            )}
-      </div>
+      {/* Mobile Bottom Bar for quick access - Hidden in Detail View to avoid overlap with actions */}
+      {currentView !== 'detail' && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 px-2 z-50 pb-safe">
+          {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setView(item.id)}
+                  className={`flex flex-col items-center space-y-1 ${
+                    currentView === item.id ? 'text-indigo-600' : 'text-slate-400'
+                  }`}
+                >
+                  {item.icon}
+                  <span className="text-xs">{item.label}</span>
+                </button>
+              ))}
+              
+              {currentUser?.role === UserRole.ADMIN ? (
+                <button
+                  onClick={() => setView('admin')}
+                  className={`flex flex-col items-center space-y-1 ${
+                    currentView === 'admin' ? 'text-indigo-600' : 'text-slate-400'
+                  }`}
+                >
+                  <Shield size={20} />
+                  <span className="text-xs">Admin</span>
+                </button>
+              ) : currentUser?.role === UserRole.BUSINESS ? (
+                <button
+                  onClick={() => setView('business_dashboard')}
+                  className={`flex flex-col items-center space-y-1 ${
+                    currentView === 'business_dashboard' ? 'text-indigo-600' : 'text-slate-400'
+                  }`}
+                >
+                  <LayoutDashboard size={20} />
+                  <span className="text-xs">İşletmem</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setView('business_register')}
+                  className={`flex flex-col items-center space-y-1 ${
+                    currentView === 'business_register' ? 'text-indigo-600' : 'text-slate-400'
+                  }`}
+                >
+                  <Building2 size={20} />
+                  <span className="text-xs">İşletme</span>
+                </button>
+              )}
+        </div>
+      )}
     </nav>
   );
 };
