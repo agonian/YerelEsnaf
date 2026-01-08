@@ -6,6 +6,7 @@ export enum Category {
   AUTOMOTIVE = 'Otomotiv',
   EVENTS = 'Etkinlik & Organizasyon',
   HEALTH = 'Sağlık',
+  PUBLIC = 'Kamu & Kurumlar',
   OTHER = 'Diğer'
 }
 
@@ -21,6 +22,7 @@ export interface User {
   name: string;
   role: UserRole;
   phone?: string;
+  address?: string; // Saved user address
 }
 
 export interface Product {
@@ -40,9 +42,15 @@ export interface Business {
   imageUrl: string;
   rating: number;
   tags: string[];
-  status: 'pending' | 'approved' | 'rejected'; // New status field
+  status: 'pending' | 'approved' | 'rejected' | 'passive'; // Added passive
   ownerId?: string; // Link to user
   isPromoted?: boolean;
+  promotedUntil?: string; // ISO Date string for expiration
+  
+  // New Flags
+  hasDelivery?: boolean; // Paket servis var mı?
+  isPublicService?: boolean; // Kamu kurumu mu? (Ürün satışı yok)
+
   offer?: {
     title: string;
     description: string;

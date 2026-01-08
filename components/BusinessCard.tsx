@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, MapPin, Phone, Tag } from 'lucide-react';
+import { Star, MapPin, Phone, Tag, Truck, Landmark } from 'lucide-react';
 import { Business } from '../types';
 
 interface BusinessCardProps {
@@ -20,10 +20,19 @@ const BusinessCard: React.FC<BusinessCardProps> = ({ business, onClick }) => {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         {business.isPromoted && (
-          <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">
+          <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse z-10">
             Öne Çıkan
           </div>
         )}
+        
+        {/* Public Service Badge */}
+        {business.isPublicService && (
+             <div className="absolute top-3 left-3 bg-blue-500/90 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md shadow-md z-10 flex items-center gap-1">
+                <Landmark size={12} />
+                Kamu/Kurum
+             </div>
+        )}
+
         <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm text-slate-800 text-xs font-semibold px-2 py-1 rounded">
           {business.category}
         </div>
@@ -51,15 +60,32 @@ const BusinessCard: React.FC<BusinessCardProps> = ({ business, onClick }) => {
           </div>
         </div>
 
-        {business.offer && (
-           <div className="mt-4 bg-indigo-50 border border-indigo-100 rounded-lg p-3">
-              <div className="flex items-center text-indigo-700 font-bold text-sm mb-1">
-                 <Tag size={14} className="mr-1" />
-                 {business.offer.title}
-              </div>
-              <p className="text-indigo-600 text-xs">{business.offer.discountRate ? `Oran: ${business.offer.discountRate}` : 'Fırsat'}</p>
-           </div>
-        )}
+        {/* Feature Icons: Offer or Delivery Status */}
+        <div className="mt-3 flex flex-col gap-2">
+            {business.offer && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-2.5">
+                <div className="flex items-center text-indigo-700 font-bold text-xs mb-0.5">
+                    <Tag size={12} className="mr-1" />
+                    {business.offer.title}
+                </div>
+            </div>
+            )}
+            
+            {/* Show Delivery Info if NOT a public service */}
+            {!business.isPublicService && (
+                <div className="flex items-center gap-2 text-xs">
+                    {business.hasDelivery ? (
+                        <span className="text-green-600 bg-green-50 px-2 py-1 rounded flex items-center gap-1">
+                            <Truck size={12} /> Paket Servis
+                        </span>
+                    ) : (
+                        <span className="text-slate-500 bg-slate-100 px-2 py-1 rounded flex items-center gap-1">
+                            <Truck size={12} className="opacity-50" /> Gel-Al
+                        </span>
+                    )}
+                </div>
+            )}
+        </div>
         
         <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2 flex-wrap">
           {business.tags.slice(0, 3).map((tag, i) => (

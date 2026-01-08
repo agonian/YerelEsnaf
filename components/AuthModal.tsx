@@ -5,7 +5,7 @@ import { UserRole } from '../types';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (name: string, role: UserRole) => void;
+  onLogin: (name: string, role: UserRole, id?: string) => void;
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
@@ -17,7 +17,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim()) {
-      onLogin(name, role);
+      // For demo purposes: If Business role is selected, assign the ID that matches the mock business
+      const userId = role === UserRole.BUSINESS ? 'demo_business_user' : Date.now().toString();
+      onLogin(name, role, userId);
       onClose();
     }
   };

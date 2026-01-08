@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Building2, User, Phone, MapPin, Info } from 'lucide-react';
+import { Send, Building2, Phone, MapPin, Info, Save, Truck, Landmark } from 'lucide-react';
 import { Category, Business, UserRole, User as UserType } from '../types';
 import { ADMIN_PHONE_NUMBER } from '../constants';
 
@@ -16,7 +16,11 @@ const BusinessRegistration: React.FC<BusinessRegistrationProps> = ({ currentUser
     description: '',
     address: '',
     phone: '',
+    hasDelivery: true,
+    isPublicService: false
   });
+
+  const isAdmin = currentUser?.role === UserRole.ADMIN;
 
   if (!currentUser || (currentUser.role !== UserRole.BUSINESS && currentUser.role !== UserRole.ADMIN)) {
     return (
@@ -53,15 +57,23 @@ const BusinessRegistration: React.FC<BusinessRegistrationProps> = ({ currentUser
       rating: 0,
       tags: [],
       products: [],
-      status: 'pending', // Important
+      hasDelivery: formData.hasDelivery,
+      isPublicService: formData.isPublicService,
+      // If Admin is adding, approve immediately. Otherwise pending.
+      status: isAdmin ? 'approved' : 'pending',
       ownerId: currentUser.id
     };
 
     onRegister(newBusiness);
 
-    // Prepare WhatsApp Message for Admin
-    const waMessage = `Merhaba, yeni bir işletme başvurusu yaptım.%0A%0A*İşletme Adı:* ${formData.name}%0A*Kategori:* ${formData.category}%0A*Yetkili:* ${currentUser.name}%0A%0AOnay ve ödeme süreci için bilgi bekliyorum.`;
-    window.open(`https://wa.me/${ADMIN_PHONE_NUMBER}?text=${waMessage}`, '_blank');
+    // If Admin, do not open WhatsApp
+    if (!isAdmin) {
+      // Prepare WhatsApp Message for Admin
+      const waMessage = `Merhaba, yeni bir işletme başvurusu yaptım.%0A%0A*İşletme Adı:* ${formData.name}%0A*Kategori:* ${formData.category}%0A*Yetkili:* ${currentUser.name}%0A%0AOnay ve ödeme süreci için bilgi bekliyorum.`;
+      window.open(`https://wa.me/${ADMIN_PHONE_NUMBER}?text=${waMessage}`, '_blank');
+    } else {
+      alert("İşletme başarıyla kaydedildi ve onaylandı.");
+    }
   };
 
   return (
@@ -70,10 +82,10 @@ const BusinessRegistration: React.FC<BusinessRegistrationProps> = ({ currentUser
         <div className="mb-8 border-b border-slate-100 pb-4">
           <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Building2 className="text-indigo-600" />
-            İşletme Başvuru Formu
+            {isAdmin ? 'Yeni İşletme Kaydı (Yönetici)' : 'İşletme Başvuru Formu'}
           </h2>
           <p className="text-slate-500 mt-1">
-            Bilgilerinizi doldurun ve yönetici onayına gönderin.
+            {isAdmin ? 'İşletme bilgilerini girerek sisteme ekleyin.' : 'Bilgilerinizi doldurun ve yönetici onayına gönderin.'}
           </p>
         </div>
 
@@ -88,7 +100,7 @@ const BusinessRegistration: React.FC<BusinessRegistrationProps> = ({ currentUser
               value={formData.name}
               onChange={e => setFormData({...formData, name: e.target.value})}
               className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Örn: Paşa Döner"
+              placeholder="Örn: Paşa Döner veya Merkez Kütüphanesi"
             />
           </div>
 
@@ -97,7 +109,15 @@ const BusinessRegistration: React.FC<BusinessRegistrationProps> = ({ currentUser
               <label className="text-sm font-medium text-slate-700">Kategori</label>
               <select 
                 value={formData.category}
-                onChange={e => setFormData({...formData, category: e.target.value as Category})}
+                onChange={e => {
+                    const cat = e.target.value as Category;
+                    // Auto-set Public Service for PUBLIC category
+                    setFormData({
+                        ...formData, 
+                        category: cat,
+                        isPublicService: cat === Category.PUBLIC
+                    });
+                }}
                 className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
               >
                 {Object.values(Category).map(cat => (
@@ -119,6 +139,57 @@ const BusinessRegistration: React.FC<BusinessRegistrationProps> = ({ currentUser
                 placeholder="90555..."
               />
             </div>
+          </div>
+
+          {/* New Toggles */}
+          <div className="grid md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                   <div className={`p-2 rounded-lg ${formData.isPublicService ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'}`}>
+                      <Landmark size={20} />
+                   </div>
+                   <div>
+                      <p className="font-bold text-sm text-slate-800">Kamu/Hizmet Kurumu</p>
+                      <p className="text-[10px] text-slate-500">Ürün satışı yoktur, sadece bilgi.</p>
+                   </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={formData.isPublicService}
+                    onChange={e => setFormData({
+                        ...formData, 
+                        isPublicService: e.target.checked,
+                        // If public service, usually no delivery either (unless specified)
+                        hasDelivery: e.target.checked ? false : formData.hasDelivery 
+                    })}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+             </div>
+
+             <div className={`flex items-center justify-between ${formData.isPublicService ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className="flex items-center gap-2">
+                   <div className={`p-2 rounded-lg ${formData.hasDelivery ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
+                      <Truck size={20} />
+                   </div>
+                   <div>
+                      <p className="font-bold text-sm text-slate-800">Paket Servis</p>
+                      <p className="text-[10px] text-slate-500">Eve teslimat yapılıyor mu?</p>
+                   </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={formData.hasDelivery}
+                    onChange={e => setFormData({...formData, hasDelivery: e.target.checked})}
+                    disabled={formData.isPublicService}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                </label>
+             </div>
           </div>
 
           <div className="space-y-2">
@@ -149,19 +220,34 @@ const BusinessRegistration: React.FC<BusinessRegistrationProps> = ({ currentUser
             />
           </div>
 
-          <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex gap-3 text-sm text-indigo-800">
-            <Info className="shrink-0 mt-0.5" size={18} />
-            <p>
-              "Başvuruyu Tamamla" butonuna bastığınızda WhatsApp açılacak ve yöneticiye otomatik bir mesaj gönderilecektir. Ödeme onayı sonrası işletmeniz yayınlanacaktır.
-            </p>
-          </div>
+          {!isAdmin && (
+            <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex gap-3 text-sm text-indigo-800">
+              <Info className="shrink-0 mt-0.5" size={18} />
+              <p>
+                "Başvuruyu Tamamla" butonuna bastığınızda WhatsApp açılacak ve yöneticiye otomatik bir mesaj gönderilecektir. Ödeme onayı sonrası işletmeniz yayınlanacaktır.
+              </p>
+            </div>
+          )}
 
           <button 
             type="submit"
-            className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-green-100 flex items-center justify-center gap-2"
+            className={`w-full text-white font-bold py-4 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2 ${
+              isAdmin 
+                ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100' 
+                : 'bg-[#25D366] hover:bg-[#128C7E] shadow-green-100'
+            }`}
           >
-            <Send size={20} />
-            Başvuruyu Tamamla ve WhatsApp'a Git
+            {isAdmin ? (
+              <>
+                <Save size={20} />
+                İşletmeyi Kaydet
+              </>
+            ) : (
+              <>
+                <Send size={20} />
+                Başvuruyu Tamamla ve WhatsApp'a Git
+              </>
+            )}
           </button>
         </form>
       </div>

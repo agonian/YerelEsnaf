@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, ShoppingBag, Calendar, Info, Shield, LogIn, User, Building2 } from 'lucide-react';
+import { MapPin, ShoppingBag, Calendar, Info, Shield, LogIn, User, Building2, LayoutDashboard } from 'lucide-react';
 import { UserRole, User as UserType } from '../types';
 
 interface NavbarProps {
@@ -17,8 +17,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
     { id: 'planner', label: 'Akıllı Asistan', icon: <Calendar size={20} /> },
   ];
 
-  // İşletme linkini sadece herkes görebilir (başvuru için) ancak rolüne göre yönlendirme değişir
-  // Admin linkini sadece admin görür
+  // Logic to hide 'Add Business' button for Admin and Business roles
+  const showAddBusinessButton = !currentUser || (currentUser.role !== UserRole.ADMIN && currentUser.role !== UserRole.BUSINESS);
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
@@ -51,18 +51,35 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
 
             <div className="h-6 w-px bg-slate-200 mx-1"></div>
 
-             {/* İşletme Butonu */}
-             <button
-                onClick={() => setView('business_register')}
-                className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === 'business_register'
-                    ? 'text-indigo-600 bg-indigo-50'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <Building2 size={16} />
-                <span>İşletme Ekle</span>
-              </button>
+             {/* İşletme Ekle Butonu - Sadece Misafir ve Standart Kullanıcılar */}
+             {showAddBusinessButton && (
+               <button
+                  onClick={() => setView('business_register')}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentView === 'business_register'
+                      ? 'text-indigo-600 bg-indigo-50'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <Building2 size={16} />
+                  <span>İşletme Ekle</span>
+                </button>
+             )}
+
+            {/* İşletme Dashboard Butonu (Sadece İşletme Sahipleri) */}
+            {currentUser?.role === UserRole.BUSINESS && (
+               <button
+                  onClick={() => setView('business_dashboard')}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentView === 'business_dashboard'
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-blue-600 hover:bg-blue-50'
+                  }`}
+                >
+                  <LayoutDashboard size={16} />
+                  <span>İşletmem</span>
+                </button>
+            )}
 
             {/* Admin Butonu (Sadece Admin) */}
             {currentUser?.role === UserRole.ADMIN && (
@@ -148,6 +165,16 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
               >
                 <Shield size={20} />
                 <span className="text-xs">Admin</span>
+              </button>
+            ) : currentUser?.role === UserRole.BUSINESS ? (
+              <button
+                onClick={() => setView('business_dashboard')}
+                className={`flex flex-col items-center space-y-1 ${
+                  currentView === 'business_dashboard' ? 'text-indigo-600' : 'text-slate-400'
+                }`}
+              >
+                <LayoutDashboard size={20} />
+                <span className="text-xs">İşletmem</span>
               </button>
             ) : (
               <button

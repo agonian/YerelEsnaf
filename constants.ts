@@ -15,7 +15,10 @@ export const MOCK_BUSINESSES: Business[] = [
     rating: 4.8,
     tags: ['kahvaltı', 'mantı', 'ev yemeği', 'bahçe'],
     status: 'approved',
+    ownerId: 'demo_business_user', // Fixed ID for demo login matching
     isPromoted: true,
+    hasDelivery: true,
+    isPublicService: false,
     offer: {
       title: 'Serpme Kahvaltıda %20 İndirim',
       description: 'Hafta içi 11:00\'e kadar geçerli.',
@@ -40,6 +43,8 @@ export const MOCK_BUSINESSES: Business[] = [
     tags: ['düğün', 'nişan', 'kına', 'süsleme'],
     status: 'approved',
     isPromoted: true,
+    hasDelivery: false,
+    isPublicService: false,
     products: [
       { id: 'p1', name: 'Nişan Masası Süsleme', price: 3500, description: 'Arka fon, maket pasta, jardinyer seti.' },
       { id: 'p2', name: 'Gelin Yolu Süsleme', price: 2000, description: '8 adet sütun ve çiçekler.' }
@@ -56,6 +61,8 @@ export const MOCK_BUSINESSES: Business[] = [
     rating: 4.5,
     tags: ['kuaför', 'makyaj', 'gelin başı'],
     status: 'approved',
+    hasDelivery: false,
+    isPublicService: false,
     offer: {
       title: 'Gelin Paketi Kampanyası',
       description: 'Saç + Makyaj + Cilt Bakımı sadece 2500 TL.',
@@ -78,6 +85,8 @@ export const MOCK_BUSINESSES: Business[] = [
     rating: 4.2,
     tags: ['çiçek', 'gelin çiçeği', 'aranjman'],
     status: 'approved',
+    hasDelivery: true,
+    isPublicService: false,
     products: [
       { id: 'p1', name: 'Gül Buketi (10\'lu)', price: 600, description: 'İthal kırmızı güller.' },
       { id: 'p2', name: 'Orkide (Çift Dallı)', price: 850, description: 'Seramik saksıda.' }
@@ -94,6 +103,8 @@ export const MOCK_BUSINESSES: Business[] = [
     rating: 4.7,
     tags: ['tamir', 'bakım', 'yağ değişimi'],
     status: 'approved',
+    hasDelivery: false,
+    isPublicService: false,
     products: [
       { id: 'p1', name: 'Periyodik Bakım', price: 1500, description: 'Yağ ve filtre değişimi (Parça hariç işçilik).' },
       { id: 'p2', name: 'Kışlık Bakım Kontrolü', price: 500, description: 'Antifriz ve lastik kontrolü.' }
@@ -110,6 +121,8 @@ export const MOCK_BUSINESSES: Business[] = [
     rating: 4.9,
     tags: ['fotoğraf', 'düğün', 'video'],
     status: 'approved',
+    hasDelivery: false,
+    isPublicService: false,
     products: [
       { id: 'p1', name: 'Dış Çekim Albüm Paketi', price: 5000, description: 'Panoramik albüm + 2 aile albümü + poster.' },
       { id: 'p2', name: 'Düğün Hikayesi Klibi', price: 4000, description: 'Tüm gün video çekimi ve kurgu.' }
@@ -126,6 +139,8 @@ export const MOCK_BUSINESSES: Business[] = [
     rating: 4.6,
     tags: ['burger', 'fast food', 'öğrenci dostu'],
     status: 'approved',
+    hasDelivery: true,
+    isPublicService: false,
     offer: {
       title: '2. Burger Bedava',
       description: 'Her Salı günü geçerli.',
@@ -149,9 +164,42 @@ export const MOCK_BUSINESSES: Business[] = [
     rating: 5.0,
     tags: ['eczane', 'sağlık', 'kozmetik'],
     status: 'approved',
+    hasDelivery: true,
+    isPublicService: false,
     products: [
       { id: 'p1', name: 'Güneş Kremi 50+', price: 450, description: 'Hassas ciltler için.' },
       { id: 'p2', name: 'Vitamin C Serumu', price: 350, description: 'Aydınlatıcı etki.' }
     ]
+  },
+  // NEW: Public Service Example
+  {
+    id: '9',
+    name: 'İlçe Devlet Hastanesi',
+    category: Category.PUBLIC,
+    description: '7/24 Acil servis, poliklinik hizmetleri ve görüntüleme merkezi. Randevu için 182\'yi arayabilirsiniz.',
+    address: 'Hürriyet Mah. Sağlık Cad. No:1',
+    phone: '02120000000',
+    imageUrl: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&q=80',
+    rating: 4.2,
+    tags: ['hastane', 'acil', 'sağlık', 'doktor'],
+    status: 'approved',
+    hasDelivery: false,
+    isPublicService: true,
+    products: []
+  },
+  {
+    id: '10',
+    name: 'Halk Kütüphanesi',
+    category: Category.PUBLIC,
+    description: 'Hafta içi 08:30 - 17:30 arası hizmet vermektedir. Ücretsiz internet ve çalışma salonu mevcuttur.',
+    address: 'Merkez Mah. Okul Sok. No:4',
+    phone: '02121111111',
+    imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80',
+    rating: 4.8,
+    tags: ['kütüphane', 'kitap', 'ders çalışma'],
+    status: 'approved',
+    hasDelivery: false,
+    isPublicService: true,
+    products: []
   }
 ];
