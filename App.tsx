@@ -5,11 +5,13 @@ import AIPlanner from './components/AIPlanner';
 import AdminPanel from './components/AdminPanel';
 import BusinessDetail from './components/BusinessDetail';
 import AuthModal from './components/AuthModal';
-import BusinessRegistration from './components/BusinessRegistration';
+import BusinessRegistration from './components/BusinessRegistration'; // Kept as component but not main nav
 import BusinessDashboard from './components/BusinessDashboard';
-import { MOCK_BUSINESSES } from './constants';
-import { Category, Business, User, UserRole } from './types';
-import { Search, Filter, Rocket, Wallet, Lock, Sun, Moon, Coffee, Megaphone, Info } from 'lucide-react';
+import JobBoard from './components/JobBoard';
+import Footer from './components/Footer';
+import { MOCK_BUSINESSES, MOCK_JOBS } from './constants';
+import { Category, Business, User, UserRole, JobPosting } from './types';
+import { Search, Filter, Rocket, Wallet, Lock, Sun, Moon, Coffee, Megaphone, Info, Building2, ArrowRight } from 'lucide-react';
 
 // --- Ad Placeholder Component ---
 const AdPlaceholder: React.FC<{ 
@@ -34,6 +36,8 @@ const AdPlaceholder: React.FC<{
 function App() {
   const [currentView, setView] = useState('explore'); 
   const [businesses, setBusinesses] = useState<Business[]>(MOCK_BUSINESSES);
+  const [jobPostings, setJobPostings] = useState<JobPosting[]>(MOCK_JOBS);
+
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,11 +45,16 @@ function App() {
   // Auth State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'admin_login'>('login');
+  const [authInitialRole, setAuthInitialRole] = useState<UserRole.USER | UserRole.BUSINESS>(UserRole.USER);
 
-  // Time of Day Logic
-  const currentHour = new Date().getHours();
-  const timeContext = currentHour < 11 ? 'morning' : currentHour < 17 ? 'lunch' : 'dinner';
-  
+  // Admin Managed State
+  const [specialLogo, setSpecialLogo] = useState<string | undefined>('https://cdn-icons-png.flaticon.com/512/744/744922.png'); 
+  // Custom Background Image for Hero - Admin customizable state
+  const [heroImage, setHeroImage] = useState<string>('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&q=80');
+  // Admin Profile Settings
+  const [adminProfileName, setAdminProfileName] = useState('Site Yöneticisi');
+
   // Load user from local storage (mock persistence)
   useEffect(() => {
     const savedUser = localStorage.getItem('mockUser');
@@ -64,22 +73,35 @@ function App() {
 
   }, []);
 
-  const handleLogin = (name: string, role: UserRole, id?: string) => {
-    const userId = id || Date.now().toString();
-    const user: User = {
-      id: userId,
-      name,
-      role,
+  const handleLogin = (userData: any, role: UserRole, businessData?: Partial<Business>) => {
+    let user: User = {
+      id: userData.id,
+      name: userData.name,
+      role: role,
       address: 'Örnek Mah. Çınar Sok. No:5' // Mock Address
     };
+    
+    // Use dynamic admin name if logging in as admin
+    if (role === UserRole.ADMIN) {
+        user.name = adminProfileName;
+    }
+
     setCurrentUser(user);
     localStorage.setItem('mockUser', JSON.stringify(user));
+    
+    // Scroll to top on login
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // If a new business was created during registration, add it to state
+    if (businessData && role === UserRole.BUSINESS) {
+        setBusinesses(prev => [businessData as Business, ...prev]);
+    }
     
     // Redirect logic based on role
     if (role === UserRole.ADMIN) {
       setView('admin');
     } else if (role === UserRole.BUSINESS) {
-      const userBiz = businesses.find(b => b.ownerId === userId);
+      const userBiz = businessData as Business || businesses.find(b => b.ownerId === user.id);
       
       if (userBiz) {
          setSelectedBusiness(userBiz);
@@ -96,19 +118,39 @@ function App() {
     setCurrentUser(null);
     localStorage.removeItem('mockUser');
     setView('explore');
+    window.scrollTo(0,0);
   };
 
-  const handleRegisterBusiness = (newBusiness: Business) => {
-    // Ensure the new business has the current user's ID
+  const handleRegisterBusinessLegacy = (newBusiness: Business) => {
     if (currentUser) {
         newBusiness.ownerId = currentUser.id;
     }
     setBusinesses(prev => [newBusiness, ...prev]);
     alert("Başvurunuz alındı! Yönetim paneline yönlendiriliyorsunuz...");
-    
-    // Immediately set selected business and view
     setSelectedBusiness(newBusiness);
     setView('business_dashboard');
+    window.scrollTo(0,0);
+  };
+
+  // JOB HANDLERS
+  const handleAddJob = (newJob: JobPosting) => {
+     if (currentUser?.role === UserRole.ADMIN) {
+        newJob.status = 'approved';
+     }
+     setJobPostings(prev => [newJob, ...prev]);
+     alert("İlanınız başarıyla oluşturuldu! Yönetici onayından sonra yayınlanacaktır.");
+  };
+
+  const handleUpdateJob = (updatedJob: JobPosting) => {
+    setJobPostings(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+    // If admin is updating, no alert needed usually, but for user feedback:
+    if (currentUser?.role !== UserRole.ADMIN) {
+        alert("İlanınız güncellendi.");
+    }
+  };
+
+  const handleDeleteJob = (jobId: string) => {
+      setJobPostings(prev => prev.filter(j => j.id !== jobId));
   };
 
   const handleBusinessClick = (business: Business) => {
@@ -123,23 +165,25 @@ function App() {
   };
 
   const handleSetView = (view: string) => {
+    // Reset scroll when changing views
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     if (view === 'admin' && currentUser?.role !== UserRole.ADMIN) {
+      setAuthMode('admin_login');
       setIsAuthModalOpen(true);
       return;
     }
-    // Business dashboard check
     if (view === 'business_dashboard') {
        if (!currentUser || currentUser.role !== UserRole.BUSINESS) {
+         setAuthMode('login');
          setIsAuthModalOpen(true);
          return;
        }
-       // Find user's business
        const userBiz = businesses.find(b => b.ownerId === currentUser.id);
        if (userBiz) {
          setSelectedBusiness(userBiz);
        } else {
-         // If they have the role but no business, send to register
-         setView('business_register');
+         setView('explore'); 
          return;
        }
     }
@@ -155,15 +199,36 @@ function App() {
     setSelectedBusiness(updated);
   };
 
-  // Promoted Businesses (Showcase)
+  const handleRateBusiness = (businessId: string, newRating: number) => {
+    setBusinesses(prev => prev.map(b => {
+      if (b.id === businessId) {
+        const currentRating = b.rating;
+        const averagedRating = Number(((currentRating * 10 + newRating) / 11).toFixed(1));
+        const finalBusiness = { ...b, rating: averagedRating };
+        if (selectedBusiness?.id === businessId) {
+            setSelectedBusiness(finalBusiness);
+        }
+        return finalBusiness;
+      }
+      return b;
+    }));
+  };
+
+  const handleUpdateAdminProfile = (newName: string) => {
+      setAdminProfileName(newName);
+      if (currentUser && currentUser.role === UserRole.ADMIN) {
+          const updatedUser = { ...currentUser, name: newName };
+          setCurrentUser(updatedUser);
+          localStorage.setItem('mockUser', JSON.stringify(updatedUser));
+      }
+  };
+
   const promotedBusinesses = useMemo(() => {
     return businesses.filter(b => b.status === 'approved' && b.isPromoted);
   }, [businesses]);
 
-  // Filtering Logic
   const filteredBusinesses = useMemo(() => {
     let result = businesses.filter((business) => {
-      // Admin sees everything in admin panel
       if (currentView === 'explore' || currentView === 'deals' || currentView === 'planner') {
          if (business.status !== 'approved') return false;
       }
@@ -179,69 +244,80 @@ function App() {
       return matchesCategory && matchesSearch;
     });
 
-    // Sort: Promoted first
     return result.sort((a, b) => (a.isPromoted === b.isPromoted) ? 0 : a.isPromoted ? -1 : 1);
   }, [selectedCategory, searchQuery, currentView, businesses]);
-
-  // Smart Suggestions Logic
-  const suggestedBusinesses = useMemo(() => {
-     // First, filter only active businesses
-     const activeBusinesses = businesses.filter(b => b.status === 'approved');
-
-     if (timeContext === 'morning') return activeBusinesses.filter(b => b.tags.includes('kahvaltı') || b.category === Category.FOOD);
-     if (timeContext === 'lunch') return activeBusinesses.filter(b => b.tags.includes('döner') || b.tags.includes('burger') || b.tags.includes('ev yemeği'));
-     return activeBusinesses.filter(b => b.category === Category.FOOD && (b.tags.includes('ocakbaşı') || b.tags.includes('akşam')));
-  }, [businesses, timeContext]);
 
   const categories = Object.values(Category);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    // Removed pb-16 from here, padding handled in Footer
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col transition-all">
       <Navbar 
         currentView={currentView} 
         setView={handleSetView} 
         currentUser={currentUser}
-        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenAuth={() => {
+            setAuthInitialRole(UserRole.USER); // Reset to User default for navbar clicks
+            setAuthMode('login');
+            setIsAuthModalOpen(true);
+        }}
         onLogout={handleLogout}
+        specialLogo={specialLogo}
       />
 
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
-        onLogin={handleLogin} 
+        onLogin={handleLogin}
+        initialMode={authMode}
+        initialRole={authInitialRole}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
         
         {/* VIEW: EXPLORE & DEALS */}
         {(currentView === 'explore' || currentView === 'deals') && (
-          <div className="space-y-8 animate-in fade-in duration-500">
-            {/* New Minimal Hero */}
-            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden h-48 md:h-56 flex flex-col justify-center">
-               <div className="absolute right-0 top-0 h-full w-1/2 bg-[url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80')] opacity-10 bg-cover bg-center mix-blend-overlay"></div>
-               <div className="relative z-10 max-w-xl">
-                 <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                   {currentView === 'deals' ? '🔥 Günün Fırsatları' : `👋 Merhaba ${currentUser?.name.split(' ')[0] || 'Misafir'},`}
-                 </h1>
-                 <p className="text-indigo-100 text-sm md:text-base mb-6 opacity-90">
-                   {currentView === 'deals' ? 'Bütçe dostu kampanyaları kaçırma.' : 'Bugün ilçede ne keşfetmek istersin?'}
-                 </p>
-                 <div className="relative max-w-md">
-                    <input
-                      type="text"
-                      placeholder="Ne arıyorsun? (Kebap, Kuaför, Tamirci...)"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl text-slate-900 focus:outline-none shadow-xl border-0 text-sm"
-                    />
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                 </div>
+          <div className="space-y-6 animate-in fade-in duration-500">
+            
+            {/* Minimal Customizable Hero Section */}
+            <div className="relative rounded-2xl overflow-hidden shadow-md h-36 md:h-40 flex items-center group">
+               {/* Background Image - Admin Customizable */}
+               <div className="absolute inset-0">
+                   <img 
+                      src={heroImage} 
+                      alt="Şehir Arkaplan" 
+                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+                   />
+                   <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-transparent" />
+               </div>
+
+               {/* Minimal Content Layout */}
+               <div className="relative z-10 w-full px-6 md:px-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="text-white">
+                      <h1 className="text-xl md:text-2xl font-bold mb-1">
+                          Merhaba, <span className="text-indigo-300">{currentUser?.name.split(' ')[0] || 'Misafir'}</span>
+                      </h1>
+                      <p className="text-xs md:text-sm text-slate-300 opacity-90">
+                          {currentView === 'deals' ? 'Bugünün fırsatlarını kaçırma.' : 'Bugün nereyi keşfetmek istersin?'}
+                      </p>
+                  </div>
+
+                  <div className="w-full md:w-96 relative">
+                     <input
+                       type="text"
+                       placeholder="Ne arıyorsun? (Kebap, Çiçek, Tamir...)"
+                       value={searchQuery}
+                       onChange={(e) => setSearchQuery(e.target.value)}
+                       className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder:text-slate-300 focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-indigo-400 transition-all text-sm"
+                     />
+                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                  </div>
                </div>
             </div>
 
             {/* AD SECTION 1: PREMIUM LOCAL SHOWCASE (VİTRİN) */}
             {currentView === 'explore' && promotedBusinesses.length > 0 && (
-              <div className="relative">
+              <div className="relative mt-6">
                  <div className="flex items-center gap-2 mb-4">
                     <div className="bg-amber-100 p-1.5 rounded-lg">
                       <Megaphone size={20} className="text-amber-600" />
@@ -252,10 +328,10 @@ function App() {
                     </div>
                  </div>
                  
-                 {/* Horizontal Scroll Container */}
-                 <div className="flex gap-4 overflow-x-auto pb-6 -mx-4 px-4 scroll-smooth no-scrollbar snap-x">
+                 {/* Horizontal Scroll Container - Aligned with parent padding */}
+                 <div className="flex gap-4 overflow-x-auto pb-6 scroll-smooth no-scrollbar snap-x">
                     {promotedBusinesses.map(business => (
-                       <div key={business.id} className="min-w-[280px] md:min-w-[320px] snap-center">
+                       <div key={business.id} className="w-72 md:w-80 flex-none snap-center">
                           <BusinessCard 
                             business={business} 
                             onClick={handleBusinessClick}
@@ -263,7 +339,7 @@ function App() {
                        </div>
                     ))}
                     {/* "Place Ad" Card for Showcase */}
-                    <div className="min-w-[200px] flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-white border-2 border-dashed border-slate-300 rounded-xl p-6 text-center group cursor-pointer hover:border-indigo-400 transition-colors">
+                    <div className="w-72 md:w-80 flex-none flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-white border-2 border-dashed border-slate-300 rounded-xl p-6 text-center group cursor-pointer hover:border-indigo-400 transition-colors">
                         <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-3 group-hover:scale-110 transition-transform">
                            <Rocket size={24} />
                         </div>
@@ -275,6 +351,31 @@ function App() {
               </div>
             )}
 
+            {/* CTA BANNER: Join as Business */}
+            {(!currentUser || currentUser.role !== UserRole.BUSINESS) && currentView === 'explore' && (
+                <div className="bg-slate-900 rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600 rounded-full filter blur-[80px] opacity-20 translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="relative z-10 text-center md:text-left">
+                        <h3 className="text-lg md:text-xl font-bold text-white mb-1">Esnaf mısınız?</h3>
+                        <p className="text-slate-300 text-xs md:text-sm max-w-lg">
+                            İşletmenizi hemen ekleyin, dijital dünyada yerinizi alın.
+                        </p>
+                    </div>
+                    <button 
+                        onClick={() => {
+                            setAuthInitialRole(UserRole.BUSINESS); // Default to Business for this button
+                            setAuthMode('register');
+                            setIsAuthModalOpen(true);
+                        }}
+                        className="relative z-10 bg-white text-slate-900 px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-50 transition-colors flex items-center gap-2 whitespace-nowrap text-sm shadow-sm"
+                    >
+                        <Building2 size={16} className="text-indigo-600" />
+                        Kayıt Ol
+                        <ArrowRight size={14} />
+                    </button>
+                </div>
+            )}
+
             {/* AD SECTION 2: GOOGLE ADS BANNER (Horizontal) */}
             <AdPlaceholder size="banner" label="Google Ads (728x90) - Kampanya Alanı" />
 
@@ -283,37 +384,14 @@ function App() {
                
                {/* LEFT COLUMN: Main Grid & Filters */}
                <div className="flex-1">
-                  
-                  {/* Smart Suggestions */}
-                  {currentView === 'explore' && !searchQuery && (
-                    <div className="mb-6">
-                       <div className="flex items-center gap-2 mb-3 text-slate-700 font-bold">
-                          {timeContext === 'morning' && <Sun className="text-amber-500" size={20} />}
-                          {timeContext === 'lunch' && <Coffee className="text-orange-500" size={20} />}
-                          {timeContext === 'dinner' && <Moon className="text-indigo-500" size={20} />}
-                          <span>
-                            {timeContext === 'morning' ? 'Güne Güzel Başla' : timeContext === 'lunch' ? 'Öğle Arası Önerileri' : 'Akşam Keyfi'}
-                          </span>
-                       </div>
-                       <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                          {suggestedBusinesses.slice(0, 5).map(b => (
-                             <div key={b.id} onClick={() => handleBusinessClick(b)} className="min-w-[140px] md:min-w-[160px] bg-white p-2 rounded-xl border border-slate-100 shadow-sm cursor-pointer hover:shadow-md transition-all">
-                                <img src={b.imageUrl} className="w-full h-24 object-cover rounded-lg mb-2" alt={b.name} />
-                                <h4 className="font-bold text-sm truncate">{b.name}</h4>
-                                <span className="text-[10px] text-slate-500">{b.category}</span>
-                             </div>
-                          ))}
-                       </div>
-                    </div>
-                  )}
 
-                  {/* Filters */}
-                  <div className="flex flex-wrap items-center gap-2 mb-6 overflow-x-auto no-scrollbar pb-2">
+                  {/* Filters - Horizontal Scroll */}
+                  <div className="flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 md:mx-0 md:px-0 select-none">
                     <button
                       onClick={() => setSelectedCategory('All')}
-                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap border ${
+                      className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all border ${
                         selectedCategory === 'All'
-                          ? 'bg-slate-800 text-white border-slate-800'
+                          ? 'bg-slate-800 text-white border-slate-800 shadow-md'
                           : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'
                       }`}
                     >
@@ -323,9 +401,9 @@ function App() {
                       <button
                         key={cat}
                         onClick={() => setSelectedCategory(cat)}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap border ${
+                        className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all border ${
                           selectedCategory === cat
-                            ? 'bg-slate-800 text-white border-slate-800'
+                            ? 'bg-slate-800 text-white border-slate-800 shadow-md'
                             : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'
                         }`}
                       >
@@ -335,7 +413,7 @@ function App() {
                   </div>
 
                   {/* Results Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                     {filteredBusinesses.length > 0 ? (
                       filteredBusinesses.map((business) => (
                         <BusinessCard 
@@ -380,9 +458,30 @@ function App() {
           </div>
         )}
 
+        {/* VIEW: JOB BOARD */}
+        {currentView === 'jobs' && (
+           <JobBoard 
+             jobs={jobPostings} 
+             currentUser={currentUser} 
+             onAddJob={handleAddJob}
+             onUpdateJob={handleUpdateJob}
+             onDeleteJob={handleDeleteJob}
+             onOpenAuth={() => {
+                 setAuthInitialRole(UserRole.USER); // Default User
+                 setAuthMode('login');
+                 setIsAuthModalOpen(true);
+             }}
+           />
+        )}
+
         {/* VIEW: BUSINESS DETAIL */}
         {currentView === 'detail' && selectedBusiness && (
-          <BusinessDetail business={selectedBusiness} currentUser={currentUser} onBack={handleBackToExplore} />
+          <BusinessDetail 
+            business={selectedBusiness} 
+            currentUser={currentUser} 
+            onBack={handleBackToExplore}
+            onRate={(rating) => handleRateBusiness(selectedBusiness.id, rating)}
+          />
         )}
 
         {/* VIEW: BUSINESS DASHBOARD (Self Management) */}
@@ -395,17 +494,31 @@ function App() {
           <AdminPanel 
             businesses={businesses} 
             setBusinesses={setBusinesses} 
+            jobs={jobPostings}
+            setJobs={setJobPostings}
             currentUser={currentUser}
             onAddBusiness={() => setView('business_register')}
+            // Application Settings Props
+            heroImage={heroImage}
+            setHeroImage={setHeroImage}
+            specialLogo={specialLogo}
+            setSpecialLogo={setSpecialLogo}
+            // New prop for updating Admin Profile Name
+            onUpdateAdminProfile={handleUpdateAdminProfile}
+            adminProfileName={adminProfileName}
           />
         )}
 
-        {/* VIEW: BUSINESS REGISTRATION */}
+        {/* VIEW: BUSINESS REGISTRATION - Legacy access if needed */}
         {currentView === 'business_register' && (
           <BusinessRegistration 
             currentUser={currentUser} 
-            onRegister={handleRegisterBusiness}
-            onOpenAuth={() => setIsAuthModalOpen(true)}
+            onRegister={handleRegisterBusinessLegacy}
+            onOpenAuth={() => {
+                setAuthInitialRole(UserRole.USER);
+                setAuthMode('login');
+                setIsAuthModalOpen(true);
+            }}
           />
         )}
 
@@ -415,6 +528,14 @@ function App() {
         )}
 
       </main>
+
+      <Footer 
+        onAdminLoginClick={() => {
+          setAuthMode('admin_login');
+          setIsAuthModalOpen(true);
+        }}
+        currentUser={currentUser}
+      />
     </div>
   );
 }

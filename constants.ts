@@ -1,7 +1,49 @@
-import { Business, Category } from './types';
+import { Business, Category, JobPosting } from './types';
 
 // Admin phone number for receiving registration requests
 export const ADMIN_PHONE_NUMBER = '905550000000'; 
+
+export const MOCK_JOBS: JobPosting[] = [
+  {
+    id: 'j1',
+    type: 'hiring',
+    title: 'Tecrübeli Garson Aranıyor',
+    description: 'Restoranımızda çalışmak üzere, diksiyonu düzgün, en az 1 yıl tecrübeli garson çalışma arkadaşları arıyoruz.',
+    contactName: 'Lezzet Konağı',
+    contactPhone: '905551234567',
+    category: 'Garson',
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    status: 'approved',
+    ownerId: 'demo_business_user'
+  },
+  {
+    id: 'j2',
+    type: 'seeking',
+    title: 'A2 Ehliyetli Kuryeyim',
+    description: 'Samandağ bölgesinde paket servis işi arıyorum. Kendi motorum yok. Tam zamanlı çalışabilirim.',
+    contactName: 'Ali Yılmaz',
+    contactPhone: '905559998877',
+    category: 'Kurye',
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
+    status: 'approved',
+    ownerId: 'user_1'
+  },
+  {
+    id: 'j3',
+    type: 'hiring',
+    title: 'Bulaşıkçı',
+    description: 'Akşam saatlerinde (17:00 - 00:00) çalışacak bulaşıkçı aranıyor.',
+    contactName: 'Meydan Restoran',
+    contactPhone: '903265120033',
+    category: 'Mutfak',
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+    status: 'approved',
+    ownerId: 'biz_3'
+  }
+];
 
 export const MOCK_BUSINESSES: Business[] = [
   {

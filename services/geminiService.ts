@@ -5,9 +5,10 @@ import { PlannerResult, Category } from "../types";
 const categoryValues = Object.values(Category);
 
 export const generatePlanFromIntent = async (userPrompt: string): Promise<PlannerResult[]> => {
+  // Debug log for local development to check if key is loaded
   if (!process.env.API_KEY) {
-    console.error("API Key not found");
-    throw new Error("API Key is missing. Please set it in your environment.");
+    console.error("CRITICAL ERROR: process.env.API_KEY is missing. Please create a .env file or set the variable in your environment.");
+    throw new Error("API Key is missing. Please check your local environment configuration.");
   }
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -62,7 +63,7 @@ export const generatePlanFromIntent = async (userPrompt: string): Promise<Planne
     }
     return [];
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini API Error Details:", error);
     throw error;
   }
 };

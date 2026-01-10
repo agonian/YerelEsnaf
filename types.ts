@@ -66,3 +66,18 @@ export interface PlannerResult {
   recommendedCategories: Category[];
   searchKeywords: string[];
 }
+
+export interface JobPosting {
+  id: string;
+  type: 'hiring' | 'seeking'; // hiring: İş Veren, seeking: İş Arayan
+  title: string;
+  description: string;
+  contactName: string; // İşletme adı veya Kişi adı
+  contactPhone: string;
+  category?: string; // Garson, Aşçı, Kurye vb.
+  createdAt: string; // ISO Date
+  expiresAt: string; // ISO Date (Auto set to 30 days)
+  status: 'pending' | 'approved' | 'rejected' | 'passive';
+  isPromoted?: boolean; // Admin promotion flag
+  ownerId: string; // User ID creating the post
+}

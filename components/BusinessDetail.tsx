@@ -6,12 +6,18 @@ interface BusinessDetailProps {
   business: Business;
   currentUser: User | null;
   onBack: () => void;
+  onRate?: (rating: number) => void;
 }
 
-const BusinessDetail: React.FC<BusinessDetailProps> = ({ business, currentUser, onBack }) => {
+const BusinessDetail: React.FC<BusinessDetailProps> = ({ business, currentUser, onBack, onRate }) => {
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [orderNote, setOrderNote] = useState('');
   const [address, setAddress] = useState(currentUser?.address || '');
+  
+  // Rating State
+  const [userRating, setUserRating] = useState<number>(0);
+  const [hoverRating, setHoverRating] = useState<number>(0);
+  const [hasRated, setHasRated] = useState(false);
 
   // Default true if undefined (backward compatibility)
   const hasDelivery = business.hasDelivery ?? true;
@@ -38,6 +44,13 @@ const BusinessDetail: React.FC<BusinessDetailProps> = ({ business, currentUser, 
       const product = business.products.find(p => p.id === id);
       return total + (product ? product.price * (count as number) : 0);
     }, 0);
+  };
+
+  const handleRateSubmit = (score: number) => {
+    if (hasRated) return;
+    setUserRating(score);
+    setHasRated(true);
+    if (onRate) onRate(score);
   };
 
   const handleWhatsAppOrder = () => {
@@ -76,8 +89,8 @@ const BusinessDetail: React.FC<BusinessDetailProps> = ({ business, currentUser, 
 
   return (
     <div className="bg-white min-h-[calc(100vh-80px)] md:rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative pb-24 md:pb-0">
-      {/* Cover Image & Header */}
-      <div className="h-48 md:h-64 relative group">
+      {/* Cover Image & Header - Added overflow-hidden to clip the zoomed image */}
+      <div className="h-48 md:h-64 relative group overflow-hidden">
         <img 
           src={business.imageUrl} 
           alt={business.name} 
@@ -150,6 +163,34 @@ const BusinessDetail: React.FC<BusinessDetailProps> = ({ business, currentUser, 
                  </div>
              )}
           </div>
+          
+          {/* Rating Section (Users Only) */}
+          {!hasRated && currentUser?.role === 'user' && (
+              <div className="bg-white border border-slate-200 rounded-xl p-6 text-center shadow-sm">
+                  <h4 className="font-bold text-slate-800 mb-2">Bu işletmeyi değerlendirin</h4>
+                  <div className="flex justify-center gap-2">
+                      {[1,2,3,4,5].map(star => (
+                          <button
+                            key={star}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            onClick={() => handleRateSubmit(star)}
+                            className="p-1 transition-transform hover:scale-110"
+                          >
+                              <Star 
+                                size={28} 
+                                className={`${(hoverRating || userRating) >= star ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} 
+                              />
+                          </button>
+                      ))}
+                  </div>
+              </div>
+          )}
+          {hasRated && (
+              <div className="bg-green-50 border border-green-100 text-green-700 p-4 rounded-xl text-center font-medium text-sm">
+                  Değerlendirmeniz alındı. Teşekkürler! ⭐
+              </div>
+          )}
 
           {/* Products List - Only if NOT a Public Service */}
           {!isPublicService && (

@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Check, X, Search, Clock, Trash2, Edit, Plus, AlertTriangle, Truck, Landmark } from 'lucide-react';
-import { Business, UserRole, User, Category } from '../types';
+import { Shield, Check, X, Search, Clock, Trash2, Edit, Plus, AlertTriangle, Truck, Landmark, Briefcase, User, Settings, Image, Layout, Lock, Star, EyeOff, Save } from 'lucide-react';
+import { Business, UserRole, User as UserType, Category, JobPosting } from '../types';
 
 interface AdminPanelProps {
   businesses: Business[];
   setBusinesses: React.Dispatch<React.SetStateAction<Business[]>>;
-  currentUser: User | null;
+  jobs: JobPosting[];
+  setJobs: React.Dispatch<React.SetStateAction<JobPosting[]>>;
+  currentUser: UserType | null;
   onAddBusiness: () => void;
+  // Settings Props
+  heroImage: string;
+  setHeroImage: (url: string) => void;
+  specialLogo?: string;
+  setSpecialLogo: (url: string) => void;
+  onUpdateAdminProfile?: (name: string) => void;
+  adminProfileName?: string;
 }
 
 // Helper component for live countdown
@@ -40,12 +49,21 @@ const PromotionTimer: React.FC<{ targetDate: string }> = ({ targetDate }) => {
   return <span className="text-[10px] font-mono font-bold text-amber-600 block mt-1">{timeLeft}</span>;
 };
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, currentUser, onAddBusiness }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'pending'>('pending');
+const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, jobs, setJobs, currentUser, onAddBusiness, heroImage, setHeroImage, specialLogo, setSpecialLogo, onUpdateAdminProfile, adminProfileName = 'Site Yöneticisi' }) => {
+  const [activeTab, setActiveTab] = useState<'pending' | 'all' | 'jobs' | 'settings'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'All'>('All');
   
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+  
+  // Job Management State
+  const [editingJob, setEditingJob] = useState<JobPosting | null>(null);
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+
+  // Settings Local State
+  const [localHero, setLocalHero] = useState(heroImage);
+  const [localLogo, setLocalLogo] = useState(specialLogo || '');
+  const [localAdminName, setLocalAdminName] = useState(adminProfileName);
   
   // Modals
   const [showTimeModal, setShowTimeModal] = useState<{id: string} | null>(null);
@@ -73,6 +91,27 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
     setBusinesses(prev => prev.map(b => 
       b.id === id ? { ...b, status: status } : b
     ));
+  };
+
+  const handleJobStatusChange = (id: string, status: 'approved' | 'rejected' | 'passive') => {
+    setJobs(prev => prev.map(j => j.id === id ? { ...j, status } : j));
+  };
+
+  const handleJobPromoteToggle = (id: string) => {
+    setJobs(prev => prev.map(j => j.id === id ? { ...j, isPromoted: !j.isPromoted } : j));
+  };
+
+  const handleDeleteJob = (id: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'İlanı Sil',
+      message: 'Bu iş ilanını kalıcı olarak silmek istediğinize emin misiniz?',
+      type: 'danger',
+      onConfirm: () => {
+        setJobs(prev => prev.filter(j => j.id !== id));
+        setConfirmModal(null);
+      }
+    });
   };
 
   const handleDeleteRequest = (id: string) => {
@@ -136,6 +175,46 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
      setBusinesses(prev => prev.map(b => b.id === updated.id ? updated : b));
      setEditingBusiness(null);
   };
+  
+  const handleJobSave = (job: JobPosting) => {
+      if (job.id === 'new') {
+          // Create new
+          const newJob = { ...job, id: Date.now().toString() };
+          setJobs(prev => [newJob, ...prev]);
+      } else {
+          // Update existing
+          setJobs(prev => prev.map(j => j.id === job.id ? job : j));
+      }
+      setEditingJob(null);
+      setIsJobModalOpen(false);
+  };
+
+  const openNewJobModal = () => {
+      setEditingJob({
+          id: 'new',
+          type: 'hiring',
+          title: '',
+          description: '',
+          contactName: 'Site Yönetimi',
+          contactPhone: '',
+          category: '',
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'approved',
+          ownerId: currentUser.id,
+          isPromoted: false
+      });
+      setIsJobModalOpen(true);
+  };
+
+  const handleSettingsSave = () => {
+      setHeroImage(localHero);
+      setSpecialLogo(localLogo);
+      if(onUpdateAdminProfile) {
+          onUpdateAdminProfile(localAdminName);
+      }
+      alert("Uygulama ayarları güncellendi.");
+  };
 
   // --- Filtering ---
   const filteredBusinesses = businesses.filter(b => {
@@ -144,8 +223,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
     const matchesTab = activeTab === 'all' ? true : b.status === 'pending';
     const matchesCat = categoryFilter === 'All' ? true : b.category === categoryFilter;
     
-    return matchesSearch && matchesTab && matchesCat;
+    return matchesSearch && matchesTab && matchesCat && activeTab !== 'jobs';
   });
+
+  const filteredJobs = jobs.filter(j => j.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[600px] relative">
@@ -156,44 +237,63 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
               <Shield className="text-purple-600" />
               Yönetici Paneli
             </h2>
-            <p className="text-slate-500">İşletme onayı, düzenleme ve öne çıkarma işlemleri.</p>
+            <p className="text-slate-500">İşletme onayı, düzenleme, öne çıkarma ve ilan yönetimi.</p>
           </div>
           
           <div className="flex flex-wrap gap-2 items-center">
-            <button 
-              type="button"
-              onClick={onAddBusiness}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors mr-2"
-            >
-              <Plus size={16} /> Yeni İşletme
-            </button>
+            {/* Business Add Button */}
+            {activeTab !== 'jobs' && activeTab !== 'settings' && (
+                <button 
+                type="button"
+                onClick={onAddBusiness}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors mr-2"
+                >
+                <Plus size={16} /> Yeni İşletme
+                </button>
+            )}
 
-            <select 
-               className="p-2 border border-slate-300 rounded-lg text-sm bg-white"
-               value={categoryFilter}
-               onChange={(e) => setCategoryFilter(e.target.value as Category | 'All')}
-            >
-               <option value="All">Tüm Kategoriler</option>
-               {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="İşletme ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-full md:w-64"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            </div>
+            {/* Job Add Button (Visible only in Jobs tab) */}
+            {activeTab === 'jobs' && (
+                <button 
+                type="button"
+                onClick={openNewJobModal}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors mr-2"
+                >
+                <Plus size={16} /> Yeni İlan Ekle
+                </button>
+            )}
+
+            {activeTab !== 'jobs' && activeTab !== 'settings' && (
+                <select 
+                className="p-2 border border-slate-300 rounded-lg text-sm bg-white"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value as Category | 'All')}
+                >
+                <option value="All">Tüm Kategoriler</option>
+                {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+            )}
+            
+            {activeTab !== 'settings' && (
+                <div className="relative">
+                <input
+                    type="text"
+                    placeholder="Ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-full md:w-64"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                </div>
+            )}
           </div>
         </div>
 
-        <div className="flex gap-4 border-b border-slate-100">
+        <div className="flex gap-4 border-b border-slate-100 overflow-x-auto">
            <button
              type="button"
              onClick={() => setActiveTab('pending')}
-             className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+             className={`pb-3 px-1 text-sm font-medium transition-colors relative whitespace-nowrap ${
                activeTab === 'pending' 
                  ? 'text-purple-600' 
                  : 'text-slate-500 hover:text-slate-800'
@@ -210,7 +310,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
            <button
              type="button"
              onClick={() => setActiveTab('all')}
-             className={`pb-3 px-1 text-sm font-medium transition-colors relative ${
+             className={`pb-3 px-1 text-sm font-medium transition-colors relative whitespace-nowrap ${
                activeTab === 'all' 
                  ? 'text-purple-600' 
                  : 'text-slate-500 hover:text-slate-800'
@@ -219,10 +319,221 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
              Tüm İşletmeler
              {activeTab === 'all' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-600"></div>}
            </button>
+           <button
+             type="button"
+             onClick={() => setActiveTab('jobs')}
+             className={`pb-3 px-1 text-sm font-medium transition-colors relative flex items-center gap-2 whitespace-nowrap ${
+               activeTab === 'jobs' 
+                 ? 'text-purple-600' 
+                 : 'text-slate-500 hover:text-slate-800'
+             }`}
+           >
+             İş İlanları
+             {jobs.filter(j => j.status === 'pending').length > 0 && (
+               <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                 {jobs.filter(j => j.status === 'pending').length}
+               </span>
+             )}
+             {activeTab === 'jobs' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-600"></div>}
+           </button>
+           <button
+             type="button"
+             onClick={() => setActiveTab('settings')}
+             className={`pb-3 px-1 text-sm font-medium transition-colors relative flex items-center gap-2 whitespace-nowrap ${
+               activeTab === 'settings' 
+                 ? 'text-purple-600' 
+                 : 'text-slate-500 hover:text-slate-800'
+             }`}
+           >
+             Ayarlar
+             {activeTab === 'settings' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-600"></div>}
+           </button>
         </div>
       </div>
 
       <div className="overflow-x-auto">
+        {/* SETTINGS TAB */}
+        {activeTab === 'settings' ? (
+             <div className="p-8 max-w-3xl">
+                 <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                     <Settings className="text-slate-500" /> Uygulama & Profil Ayarları
+                 </h3>
+                 
+                 <div className="space-y-8">
+                     {/* APP SETTINGS */}
+                     <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
+                         <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-sm">
+                             <Layout size={18} /> Görünüm Ayarları
+                         </h4>
+                         
+                         <div className="grid md:grid-cols-2 gap-6">
+                             <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Ana Sayfa Kapak Görseli (URL)</label>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={localHero}
+                                        onChange={(e) => setLocalHero(e.target.value)}
+                                        className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                                        placeholder="https://..."
+                                    />
+                                    <button className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-indigo-600"><Image size={18} /></button>
+                                </div>
+                                <div className="mt-2 h-24 w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-200">
+                                    <img src={localHero} className="w-full h-full object-cover" alt="Hero Preview" />
+                                </div>
+                             </div>
+
+                             <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Özel Gün Logosu (URL)</label>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={localLogo}
+                                        onChange={(e) => setLocalLogo(e.target.value)}
+                                        className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                                        placeholder="https://..."
+                                    />
+                                    <button className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-indigo-600"><Image size={18} /></button>
+                                </div>
+                                <div className="mt-2 h-16 w-full rounded-lg flex items-center justify-center border border-slate-200 bg-white">
+                                    {localLogo ? <img src={localLogo} className="h-10 object-contain" alt="Logo Preview" /> : <span className="text-xs text-slate-400">Logo yok</span>}
+                                </div>
+                             </div>
+                         </div>
+                     </div>
+
+                     {/* ADMIN PROFILE */}
+                     <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
+                         <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-sm">
+                             <User size={18} /> Yönetici Profili
+                         </h4>
+                         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-2xl font-bold shrink-0">
+                                 {localAdminName.charAt(0)}
+                             </div>
+                             <div className="flex-1 w-full md:w-auto">
+                                 <label className="block text-xs font-bold text-slate-500 mb-1">Yönetici Adı (Sitede Görünen)</label>
+                                 <input 
+                                    type="text" 
+                                    value={localAdminName}
+                                    onChange={(e) => setLocalAdminName(e.target.value)}
+                                    className="w-full md:w-64 p-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-900"
+                                 />
+                                 <p className="text-xs text-slate-500 mt-1">Bu isim sistem genelinde yönetici işlemleri için kullanılır.</p>
+                             </div>
+                             <button className="ml-auto text-sm text-indigo-600 font-bold hover:underline" onClick={() => alert("Şifre değiştirme şu an demo modunda aktif değil.")}>Şifre Değiştir</button>
+                         </div>
+                     </div>
+
+                     <div className="flex justify-end pt-4">
+                         <button 
+                            onClick={handleSettingsSave}
+                            className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 flex items-center gap-2"
+                         >
+                             <Save size={18} />
+                             Ayarları Kaydet
+                         </button>
+                     </div>
+                 </div>
+             </div>
+        ) : activeTab === 'jobs' ? (
+        /* JOBS TABLE */
+        <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                    <th className="px-6 py-4">Tür</th>
+                    <th className="px-6 py-4">Başlık / İletişim</th>
+                    <th className="px-6 py-4 text-center">Reklam</th>
+                    <th className="px-6 py-4">Durum</th>
+                    <th className="px-6 py-4 text-right">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+                {filteredJobs.map(job => (
+                    <tr key={job.id} className={`hover:bg-slate-50 transition-colors ${job.status === 'passive' ? 'opacity-60 bg-slate-50' : ''}`}>
+                        <td className="px-6 py-4">
+                            {job.type === 'hiring' ? (
+                                <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg text-xs font-bold border border-indigo-100">
+                                    <Briefcase size={12} /> İşveren
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-lg text-xs font-bold border border-amber-100">
+                                    <User size={12} /> İş Arayan
+                                </span>
+                            )}
+                        </td>
+                        <td className="px-6 py-4">
+                            <div className="font-bold text-slate-900 flex items-center gap-2">
+                                {job.title}
+                                {new Date(job.expiresAt) < new Date() && (
+                                    <span className="text-[10px] bg-red-100 text-red-600 px-1 rounded">Süresi Doldu</span>
+                                )}
+                            </div>
+                            <div className="text-xs text-slate-500">{job.contactName} - {job.contactPhone}</div>
+                        </td>
+                         <td className="px-6 py-4 text-center">
+                            <button 
+                                onClick={() => handleJobPromoteToggle(job.id)}
+                                className={`p-1.5 rounded-full transition-colors ${job.isPromoted ? 'bg-yellow-100 text-yellow-600' : 'text-slate-300 hover:text-yellow-500'}`}
+                            >
+                                <Star size={18} fill={job.isPromoted ? "currentColor" : "none"} />
+                            </button>
+                        </td>
+                        <td className="px-6 py-4">
+                             {job.status === 'approved' && (
+                                <span className="text-green-600 font-bold text-xs flex items-center gap-1"><Check size={12} /> Onaylı</span>
+                             )}
+                             {job.status === 'pending' && (
+                                <span className="text-amber-600 font-bold text-xs flex items-center gap-1 animate-pulse"><Clock size={12} /> Onay Bekliyor</span>
+                             )}
+                             {job.status === 'rejected' && (
+                                <span className="text-red-600 font-bold text-xs flex items-center gap-1"><X size={12} /> Reddedildi</span>
+                             )}
+                             {job.status === 'passive' && (
+                                <span className="text-slate-500 font-bold text-xs flex items-center gap-1"><EyeOff size={12} /> Pasif</span>
+                             )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                             <div className="flex justify-end gap-2">
+                                {/* Edit */}
+                                <button 
+                                  onClick={() => {
+                                      setEditingJob(job);
+                                      setIsJobModalOpen(true);
+                                  }} 
+                                  className="p-2 text-slate-500 hover:text-indigo-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50"
+                                  title="Düzenle"
+                                >
+                                    <Edit size={16} />
+                                </button>
+
+                                {/* Approve/Reject for Pending */}
+                                {job.status === 'pending' && (
+                                    <>
+                                        <button onClick={() => handleJobStatusChange(job.id, 'approved')} className="bg-green-100 text-green-600 p-2 rounded-lg hover:bg-green-200" title="Onayla"><Check size={16} /></button>
+                                        <button onClick={() => handleJobStatusChange(job.id, 'rejected')} className="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200" title="Reddet"><X size={16} /></button>
+                                    </>
+                                )}
+
+                                {/* Passive Toggle */}
+                                {job.status === 'approved' && (
+                                    <button onClick={() => handleJobStatusChange(job.id, 'passive')} className="bg-slate-100 text-slate-600 p-2 rounded-lg hover:bg-slate-200" title="Pasife Al"><EyeOff size={16} /></button>
+                                )}
+                                {job.status === 'passive' && (
+                                    <button onClick={() => handleJobStatusChange(job.id, 'approved')} className="bg-green-100 text-green-600 p-2 rounded-lg hover:bg-green-200" title="Yayınla"><Check size={16} /></button>
+                                )}
+
+                                {/* Delete */}
+                                <button onClick={() => handleDeleteJob(job.id)} className="text-slate-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                             </div>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+        ) : (
+        /* BUSINESS TABLE */
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
             <tr>
@@ -350,11 +661,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
             ))}
           </tbody>
         </table>
+        )}
       </div>
 
       {/* --- CONFIRMATION MODAL --- */}
       {confirmModal && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-white/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/80 backdrop-blur-sm p-4">
            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-sm animate-in zoom-in-95">
               <div className="flex flex-col items-center text-center">
                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${
@@ -388,7 +700,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
 
       {/* --- TIME MODAL --- */}
       {showTimeModal && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
            <div className="bg-white rounded-xl shadow-2xl border border-slate-200 p-6 w-80 animate-in zoom-in-95">
               <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                 <Clock className="text-indigo-600" />
@@ -423,12 +735,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
         </div>
       )}
 
-      {/* --- EDIT MODAL --- */}
+      {/* --- BUSINESS EDIT MODAL --- */}
       {editingBusiness && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white">
-                 <h3 className="font-bold text-xl">İşletme Düzenle</h3>
+                 <h3 className="font-bold text-xl">İşletme Düzenle (Admin)</h3>
                  <button type="button" onClick={() => setEditingBusiness(null)}><X /></button>
               </div>
               <div className="p-6 space-y-4">
@@ -461,7 +773,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
                     </div>
                  </div>
 
-                 {/* New Toggles for Edit */}
+                 {/* Toggles for Edit */}
                  <div className="flex flex-col gap-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
                     <label className="flex items-center justify-between cursor-pointer">
                         <span className="text-sm font-medium flex items-center gap-2"><Landmark size={16} className="text-blue-600" /> Kamu/Bilgi Kurumu (Ürün Satışı Yok)</span>
@@ -494,6 +806,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
                       onChange={e => setEditingBusiness({...editingBusiness, description: e.target.value})}
                     />
                  </div>
+
+                 <div>
+                    <label className="text-xs font-bold text-slate-500">Etiketler (Tag)</label>
+                    <input 
+                      className="w-full p-2 border rounded-lg" 
+                      value={editingBusiness.tags.join(', ')} 
+                      onChange={e => setEditingBusiness({...editingBusiness, tags: e.target.value.split(',').map(s => s.trim())})}
+                      placeholder="virgül ile ayırın"
+                    />
+                 </div>
                  
                  <div className="border-t pt-4">
                     <h4 className="font-bold text-sm mb-2">Ürünler ({editingBusiness.products.length})</h4>
@@ -510,6 +832,87 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ businesses, setBusinesses, curr
               <div className="p-6 border-t border-slate-100 flex justify-end gap-2 bg-slate-50">
                  <button type="button" onClick={() => setEditingBusiness(null)} className="px-4 py-2 bg-white border rounded-lg">Vazgeç</button>
                  <button type="button" onClick={() => handleEditSave(editingBusiness)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg">Değişiklikleri Kaydet</button>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* --- JOB EDIT MODAL --- */}
+      {isJobModalOpen && editingJob && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+           <div className="bg-white rounded-2xl w-full max-w-lg animate-in zoom-in-95">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white rounded-t-2xl">
+                 <h3 className="font-bold text-xl">{editingJob.id === 'new' ? 'Yeni İlan Ekle' : 'İlan Düzenle'}</h3>
+                 <button type="button" onClick={() => setIsJobModalOpen(false)}><X /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                  <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">İlan Türü</label>
+                      <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditingJob({...editingJob, type: 'hiring'})}
+                            className={`flex-1 py-2 text-sm font-bold rounded-lg border ${editingJob.type === 'hiring' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-slate-200 text-slate-500'}`}
+                          >
+                              Personel Arayan
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingJob({...editingJob, type: 'seeking'})}
+                            className={`flex-1 py-2 text-sm font-bold rounded-lg border ${editingJob.type === 'seeking' ? 'bg-amber-50 border-amber-500 text-amber-700' : 'border-slate-200 text-slate-500'}`}
+                          >
+                              İş Arayan
+                          </button>
+                      </div>
+                  </div>
+                  <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Başlık</label>
+                      <input 
+                        className="w-full p-2 border rounded-lg"
+                        value={editingJob.title}
+                        onChange={e => setEditingJob({...editingJob, title: e.target.value})}
+                      />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                      <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">Kategori</label>
+                          <input 
+                            className="w-full p-2 border rounded-lg"
+                            value={editingJob.category || ''}
+                            onChange={e => setEditingJob({...editingJob, category: e.target.value})}
+                            placeholder="Örn: Mutfak"
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">Telefon</label>
+                          <input 
+                            className="w-full p-2 border rounded-lg"
+                            value={editingJob.contactPhone}
+                            onChange={e => setEditingJob({...editingJob, contactPhone: e.target.value})}
+                          />
+                      </div>
+                  </div>
+                  <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">İletişim Kişisi/Kurum</label>
+                      <input 
+                        className="w-full p-2 border rounded-lg"
+                        value={editingJob.contactName}
+                        onChange={e => setEditingJob({...editingJob, contactName: e.target.value})}
+                      />
+                  </div>
+                  <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Açıklama</label>
+                      <textarea 
+                        className="w-full p-2 border rounded-lg"
+                        rows={4}
+                        value={editingJob.description}
+                        onChange={e => setEditingJob({...editingJob, description: e.target.value})}
+                      />
+                  </div>
+              </div>
+              <div className="p-6 border-t border-slate-100 flex justify-end gap-2 bg-slate-50 rounded-b-2xl">
+                 <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-4 py-2 bg-white border rounded-lg text-slate-600">İptal</button>
+                 <button type="button" onClick={() => handleJobSave(editingJob)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold">Kaydet</button>
               </div>
            </div>
         </div>
