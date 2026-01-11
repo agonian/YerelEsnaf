@@ -1,3 +1,4 @@
+
 export enum Category {
   FOOD = 'Yeme & İçme',
   SHOPPING = 'Alışveriş',
@@ -80,4 +81,43 @@ export interface JobPosting {
   status: 'pending' | 'approved' | 'rejected' | 'passive';
   isPromoted?: boolean; // Admin promotion flag
   ownerId: string; // User ID creating the post
+}
+
+// --- NEW TYPES FOR CLASSIFIEDS (PAZAR YERİ) ---
+export enum ClassifiedCategory {
+  REAL_ESTATE = 'Emlak',
+  VEHICLE = 'Vasıta',
+  SECOND_HAND = 'İkinci El'
+}
+
+export interface ClassifiedAd {
+  id: string;
+  title: string;
+  price: number;
+  category: ClassifiedCategory;
+  description: string;
+  imageUrl: string; // Essential for classifieds
+  location: string; // e.g., "Cumhuriyet Mah."
+  contactName: string;
+  contactPhone: string;
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected' | 'passive';
+  ownerId: string;
+}
+
+// --- NEW TYPE FOR TOURS ---
+export interface Tour {
+  id: string;
+  title: string;
+  route: string; // Güzergah
+  date: string; // Tur Tarihi
+  price: number;
+  conditions?: string; // Katılım Şartları
+  description: string;
+  imageUrl: string;
+  contactName: string; // Acente Adı
+  contactPhone: string;
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected' | 'passive';
+  ownerId: string;
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import BusinessCard from './components/BusinessCard';
@@ -8,9 +9,11 @@ import AuthModal from './components/AuthModal';
 import BusinessRegistration from './components/BusinessRegistration'; // Kept as component but not main nav
 import BusinessDashboard from './components/BusinessDashboard';
 import JobBoard from './components/JobBoard';
+import ClassifiedsBoard from './components/ClassifiedsBoard'; // New Component
+import ToursBoard from './components/ToursBoard'; // New Tours Component
 import Footer from './components/Footer';
-import { MOCK_BUSINESSES, MOCK_JOBS } from './constants';
-import { Category, Business, User, UserRole, JobPosting } from './types';
+import { MOCK_BUSINESSES, MOCK_JOBS, MOCK_CLASSIFIEDS, MOCK_TOURS } from './constants';
+import { Category, Business, User, UserRole, JobPosting, ClassifiedAd, Tour } from './types';
 import { Search, Filter, Rocket, Wallet, Lock, Sun, Moon, Coffee, Megaphone, Info, Building2, ArrowRight } from 'lucide-react';
 
 // --- Ad Placeholder Component ---
@@ -37,6 +40,8 @@ function App() {
   const [currentView, setView] = useState('explore'); 
   const [businesses, setBusinesses] = useState<Business[]>(MOCK_BUSINESSES);
   const [jobPostings, setJobPostings] = useState<JobPosting[]>(MOCK_JOBS);
+  const [classifiedAds, setClassifiedAds] = useState<ClassifiedAd[]>(MOCK_CLASSIFIEDS); // State for Classifieds
+  const [tours, setTours] = useState<Tour[]>(MOCK_TOURS); // State for Tours
 
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
@@ -151,6 +156,26 @@ function App() {
 
   const handleDeleteJob = (jobId: string) => {
       setJobPostings(prev => prev.filter(j => j.id !== jobId));
+  };
+
+  // CLASSIFIED ADS HANDLERS
+  const handleAddClassified = (newAd: ClassifiedAd) => {
+    setClassifiedAds(prev => [newAd, ...prev]);
+    alert("İlanınız başarıyla eklendi!");
+  };
+
+  const handleDeleteClassified = (adId: string) => {
+    setClassifiedAds(prev => prev.filter(a => a.id !== adId));
+  };
+
+  // TOUR HANDLERS
+  const handleAddTour = (newTour: Tour) => {
+    setTours(prev => [newTour, ...prev]);
+    alert("Tur ilanınız eklendi!");
+  };
+
+  const handleDeleteTour = (tourId: string) => {
+    setTours(prev => prev.filter(t => t.id !== tourId));
   };
 
   const handleBusinessClick = (business: Business) => {
@@ -468,6 +493,36 @@ function App() {
              onDeleteJob={handleDeleteJob}
              onOpenAuth={() => {
                  setAuthInitialRole(UserRole.USER); // Default User
+                 setAuthMode('login');
+                 setIsAuthModalOpen(true);
+             }}
+           />
+        )}
+
+        {/* VIEW: CLASSIFIEDS BOARD (NEW) */}
+        {currentView === 'classifieds' && (
+           <ClassifiedsBoard 
+             ads={classifiedAds}
+             currentUser={currentUser}
+             onAddAd={handleAddClassified}
+             onDeleteAd={handleDeleteClassified}
+             onOpenAuth={() => {
+                 setAuthInitialRole(UserRole.USER);
+                 setAuthMode('login');
+                 setIsAuthModalOpen(true);
+             }}
+           />
+        )}
+
+        {/* VIEW: TOURS BOARD (NEW) */}
+        {currentView === 'tours' && (
+           <ToursBoard 
+             tours={tours}
+             currentUser={currentUser}
+             onAddTour={handleAddTour}
+             onDeleteTour={handleDeleteTour}
+             onOpenAuth={() => {
+                 setAuthInitialRole(UserRole.BUSINESS);
                  setAuthMode('login');
                  setIsAuthModalOpen(true);
              }}

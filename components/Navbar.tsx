@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, ShoppingBag, Calendar, LogIn, User, Shield, LayoutDashboard, Briefcase, Menu, X, LogOut, ChevronRight, UserCircle, Settings } from 'lucide-react';
+import { MapPin, ShoppingBag, Calendar, LogIn, User, Shield, LayoutDashboard, Briefcase, Menu, X, LogOut, ChevronRight, UserCircle, Settings, Tag, Map } from 'lucide-react';
 import { UserRole, User as UserType } from '../types';
 
 interface NavbarProps {
@@ -22,11 +22,13 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
   const navItems = [
     { id: 'explore', label: 'Keşfet', icon: <MapPin /> },
     { id: 'deals', label: 'Fırsatlar', icon: <ShoppingBag /> },
+    { id: 'classifieds', label: 'Pazar', icon: <Tag /> },
     { id: 'jobs', label: 'İş İlanı', icon: <Briefcase /> },
+    { id: 'tours', label: 'Turlar', icon: <Map /> }, // Added Tours
     { id: 'planner', label: 'Asistan', icon: <Calendar /> },
   ];
 
-  // Helper to check if the 5th tab (Account) should be active
+  // Helper to check if the last tab (Account) should be active
   const isAccountTabActive = currentView === 'business_dashboard' || currentView === 'admin';
 
   const handleAccountClick = () => {
@@ -147,14 +149,15 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
         </div>
       </nav>
 
-      {/* --- MOBILE BOTTOM NAVIGATION BAR (Standard 5-Tab App Layout) --- */}
+      {/* --- MOBILE BOTTOM NAVIGATION BAR (App Layout) --- */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 pb-safe">
-          <div className="grid grid-cols-5 h-16">
+          {/* Use flex and overflow-x-auto to handle more items without shrinking too much */}
+          <div className="flex items-center h-16 overflow-x-auto no-scrollbar px-2">
             {navItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setView(item.id)}
-                    className={`flex flex-col items-center justify-center space-y-1 relative group ${
+                    className={`flex flex-col items-center justify-center space-y-1 relative group min-w-[64px] ${
                       currentView === item.id ? 'text-indigo-600' : 'text-slate-400'
                     }`}
                   >
@@ -164,18 +167,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
                     )}
                     
                     {React.cloneElement(item.icon as React.ReactElement, { 
-                        size: 24, 
+                        size: 20, 
                         strokeWidth: currentView === item.id ? 2.5 : 2,
                         className: "transition-transform group-active:scale-90"
                     })}
-                    <span className="text-[10px] font-medium leading-none">{item.label}</span>
+                    <span className="text-[9px] font-medium leading-none">{item.label}</span>
                   </button>
             ))}
             
-            {/* 5th Tab: Account / Login */}
+            {/* Last Tab: Account / Login */}
             <button
                 onClick={handleAccountClick}
-                className={`flex flex-col items-center justify-center space-y-1 relative group ${
+                className={`flex flex-col items-center justify-center space-y-1 relative group min-w-[64px] ${
                     isAccountTabActive || isMenuOpen ? 'text-indigo-600' : 'text-slate-400'
                 }`}
             >
@@ -185,11 +188,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
                 )}
 
                 {currentUser ? (
-                    <UserCircle size={24} strokeWidth={isAccountTabActive ? 2.5 : 2} className="transition-transform group-active:scale-90" />
+                    <UserCircle size={20} strokeWidth={isAccountTabActive ? 2.5 : 2} className="transition-transform group-active:scale-90" />
                 ) : (
-                    <LogIn size={24} className="transition-transform group-active:scale-90" />
+                    <LogIn size={20} className="transition-transform group-active:scale-90" />
                 )}
-                <span className="text-[10px] font-medium leading-none">
+                <span className="text-[9px] font-medium leading-none">
                     {currentUser ? 'Hesabım' : 'Giriş'}
                 </span>
             </button>
@@ -296,7 +299,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
                     </button>
                     
                     <div className="text-center mt-6 pb-2">
-                        <p className="text-[10px] text-slate-400">Versiyon 1.0.2</p>
+                        <p className="text-[10px] text-slate-400">Versiyon 1.0.3</p>
                     </div>
                 </div>
             </div>

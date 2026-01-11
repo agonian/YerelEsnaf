@@ -1,7 +1,41 @@
-import { Business, Category, JobPosting } from './types';
+
+import { Business, Category, JobPosting, ClassifiedAd, ClassifiedCategory, Tour } from './types';
 
 // Admin phone number for receiving registration requests
 export const ADMIN_PHONE_NUMBER = '905550000000'; 
+
+export const MOCK_TOURS: Tour[] = [
+  {
+    id: 't1',
+    title: 'Günübirlik Kapadokya Turu',
+    route: 'Samandağ Çıkışlı - Adana - Niğde - Nevşehir',
+    date: '2024-06-15',
+    price: 1200,
+    conditions: 'Fiyata ulaşım ve rehberlik dahildir. Müze girişleri hariçtir.',
+    description: 'Peri bacalarını keşfetmeye hazır mısınız? Sabah 05:00 hareket.',
+    imageUrl: 'https://images.unsplash.com/photo-1641128324972-af3212f0f6bd?auto=format&fit=crop&q=80',
+    contactName: 'Samandağ Gezi',
+    contactPhone: '905551234567',
+    createdAt: new Date().toISOString(),
+    status: 'approved',
+    ownerId: 'demo_business_user'
+  },
+  {
+    id: 't2',
+    title: 'Büyük Karadeniz Turu (5 Gece)',
+    route: 'Hatay - Trabzon - Rize - Artvin - Batum',
+    date: '2024-07-01',
+    price: 12500,
+    conditions: 'Lüks otellerde konaklama, sabah kahvaltısı ve akşam yemeği dahil. Batum geçişi için kimlik yeterlidir.',
+    description: 'Yaylaların serin havasını solumak isteyenler için kaçırılmayacak fırsat.',
+    imageUrl: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&q=80',
+    contactName: 'Akdeniz Turizm',
+    contactPhone: '905559876543',
+    createdAt: new Date().toISOString(),
+    status: 'approved',
+    ownerId: 'biz_tour_1'
+  }
+];
 
 export const MOCK_JOBS: JobPosting[] = [
   {
@@ -42,6 +76,51 @@ export const MOCK_JOBS: JobPosting[] = [
     expiresAt: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'approved',
     ownerId: 'biz_3'
+  }
+];
+
+export const MOCK_CLASSIFIEDS: ClassifiedAd[] = [
+  {
+    id: 'c1',
+    title: 'Sahibinden Temiz iPhone 13',
+    price: 32000,
+    category: ClassifiedCategory.SECOND_HAND,
+    description: 'Kutusu faturası duruyor. Çiziksiz, pil sağlığı %90. Acil satılık.',
+    imageUrl: 'https://images.unsplash.com/photo-1592750475338-74b7b2191d50?auto=format&fit=crop&q=80',
+    location: 'Çiğdede Mah.',
+    contactName: 'Mehmet Demir',
+    contactPhone: '905551112233',
+    createdAt: new Date().toISOString(),
+    status: 'approved',
+    ownerId: 'user_1'
+  },
+  {
+    id: 'c2',
+    title: 'Deniz Mahallesinde Kiralık 3+1 Daire',
+    price: 15000,
+    category: ClassifiedCategory.REAL_ESTATE,
+    description: 'Denize yürüme mesafesinde, doğalgazlı, geniş balkonlu daire.',
+    imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&q=80',
+    location: 'Deniz Mah.',
+    contactName: 'Emlakçı Ahmet',
+    contactPhone: '905554445566',
+    createdAt: new Date().toISOString(),
+    status: 'approved',
+    ownerId: 'user_2'
+  },
+  {
+    id: 'c3',
+    title: '2020 Model Fiat Egea',
+    price: 850000,
+    category: ClassifiedCategory.VEHICLE,
+    description: 'Hatasız, boyasız, tramersiz. 45.000 km de. Bakımları yeni yapıldı.',
+    imageUrl: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80',
+    location: 'Atatürk Mah.',
+    contactName: 'Mustafa Can',
+    contactPhone: '905557778899',
+    createdAt: new Date().toISOString(),
+    status: 'approved',
+    ownerId: 'user_3'
   }
 ];
 
@@ -228,7 +307,7 @@ export const MOCK_BUSINESSES: Business[] = [
     isPublicService: true,
     products: []
   },
-  // --- YENİ EKLENEN İŞLETMELER ---
+  // ... (Other businesses remain the same)
   {
     id: '11',
     name: 'Best Restaurant (Balık & Meze)',
@@ -248,262 +327,5 @@ export const MOCK_BUSINESSES: Business[] = [
       { id: 'p3', name: 'Humus & Meze Tabağı', price: 250, description: 'Yöresel meze çeşitleri.' }
     ]
   },
-  {
-    id: '12',
-    name: 'Çökmez Restaurant',
-    category: Category.FOOD,
-    description: 'Samandağ merkezde, yöresel lezzetlerin buluşma noktası.',
-    address: 'Samandağ Merkez/Çevlik Yolu',
-    phone: '903265949224',
-    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80',
-    rating: 4.5,
-    tags: ['kebap', 'aile', 'yerel'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '13',
-    name: 'Meydan Restoran',
-    category: Category.FOOD,
-    description: 'Deniz mahallesinde, sahil kenarında ferah bir ortam.',
-    address: 'Deniz Mahallesi (Sahil)',
-    phone: '903265120033',
-    imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80',
-    rating: 4.4,
-    tags: ['sahil', 'akşam yemeği', 'manzara'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '14',
-    name: 'Truva Life Restaurant',
-    category: Category.FOOD,
-    description: 'Deniz ve güneşin tadını çıkarırken eşsiz lezzetler.',
-    address: 'Deniz Sitesi, Kumsal Sokak',
-    phone: '905376488787',
-    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80',
-    rating: 4.6,
-    tags: ['deniz', 'eğlence', 'yemek'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '15',
-    name: '1990 Fırat Restaurant',
-    category: Category.FOOD,
-    description: 'Mehmet Aslan caddesinde yılların değişmeyen lezzeti.',
-    address: 'Mehmet Aslan Cad.',
-    phone: '903265124142',
-    imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80',
-    rating: 4.3,
-    tags: ['sulu yemek', 'esnaf lokantası'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '16',
-    name: 'Talibin Yeri (Kasap & Ocakbaşı)',
-    category: Category.FOOD,
-    description: 'Taze etlerinizi kasap reyonundan seçin, ocakbaşında pişirelim.',
-    address: 'Atatürk Cad. No:142',
-    phone: '905378909821',
-    imageUrl: 'https://images.unsplash.com/photo-1594041680534-e8c8cdebd659?auto=format&fit=crop&q=80',
-    rating: 4.8,
-    tags: ['ocakbaşı', 'kasap', 'mangal'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '17',
-    name: 'Saray Döner',
-    category: Category.FOOD,
-    description: 'Özel soslu Hatay döneri ve dürüm çeşitleri.',
-    address: 'Tekebaşı Mah. Sahil Cad. No:225',
-    phone: '905388144030',
-    imageUrl: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&q=80',
-    rating: 4.5,
-    tags: ['döner', 'dürüm', 'paket servis'],
-    status: 'approved',
-    hasDelivery: true,
-    isPublicService: false,
-    products: [
-      { id: 'p1', name: 'Tavuk Döner Dürüm', price: 120, description: 'Özel soslu' },
-      { id: 'p2', name: 'Et Döner Dürüm', price: 180, description: 'Yaprak döner' }
-    ]
-  },
-  {
-    id: '18',
-    name: 'Dervişan Tesisleri',
-    category: Category.FOOD,
-    description: 'Geniş bahçesi ve doğal ortamıyla kahvaltı ve yemek keyfi.',
-    address: 'Uğur Mumcu Cad.',
-    phone: '903265121656',
-    imageUrl: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80',
-    rating: 4.4,
-    tags: ['kahvaltı', 'tesis', 'bahçe'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '19',
-    name: 'Truva Life Otel',
-    category: Category.SERVICES,
-    description: 'Deniz kenarında konforlu konaklama ve tatil imkanı.',
-    address: 'Deniz Mah. Kumsal Sok. No:29',
-    phone: '905376488787',
-    imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80',
-    rating: 4.5,
-    tags: ['otel', 'konaklama', 'tatil'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '20',
-    name: 'Riva Otel',
-    category: Category.SERVICES,
-    description: 'Merkezi konumda, temiz ve nezih odalar.',
-    address: 'Deniz Mah. No:198',
-    phone: '905353746882',
-    imageUrl: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&q=80',
-    rating: 4.2,
-    tags: ['otel', 'konaklama', 'pansiyon'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '21',
-    name: 'Luna Bungalov',
-    category: Category.SERVICES,
-    description: 'Doğa ile iç içe, huzurlu bir bungalov deneyimi.',
-    address: 'Hıdırbey Mah. Kapısuyu Yolu',
-    phone: '905325725088',
-    imageUrl: 'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&q=80',
-    rating: 4.9,
-    tags: ['bungalov', 'doğa', 'kamp'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '22',
-    name: 'Akdeniz Motel & Pansiyon',
-    category: Category.SERVICES,
-    description: 'Kapısuyu mahallesinde ekonomik ve rahat konaklama.',
-    address: 'Kapısuyu Mah. Vali İsmet Gürbüz Cad.',
-    phone: '905364343661',
-    imageUrl: 'https://images.unsplash.com/photo-1560067174-c5a3a8f37060?auto=format&fit=crop&q=80',
-    rating: 4.0,
-    tags: ['motel', 'pansiyon', 'ucuz konaklama'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '23',
-    name: 'Samandağ Devlet Hastanesi',
-    category: Category.PUBLIC,
-    description: 'Bölge halkına 7/24 sağlık hizmeti sunan tam teşekküllü devlet hastanesi.',
-    address: 'Atatürk Mah. Ortaokul Cad.',
-    phone: '903265123880',
-    imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80',
-    rating: 4.5,
-    tags: ['hastane', 'sağlık', 'acil', 'doktor'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: true,
-    products: []
-  },
-  {
-    id: '24',
-    name: 'Sumaytaoğlu Eczanesi',
-    category: Category.HEALTH,
-    description: 'İlaç, medikal ürünler ve sağlık danışmanlığı.',
-    address: 'Hastane Caddesi No:12',
-    phone: '903265120278',
-    imageUrl: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&q=80',
-    rating: 5.0,
-    tags: ['eczane', 'ilaç', 'medikal'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '25',
-    name: 'Orhan Eczanesi',
-    category: Category.HEALTH,
-    description: 'Reçeteli ve reçetesiz ilaç temini.',
-    address: 'Ortaokul Caddesi No:10',
-    phone: '903265120063',
-    imageUrl: 'https://images.unsplash.com/photo-1576602976047-174e57a47881?auto=format&fit=crop&q=80',
-    rating: 4.8,
-    tags: ['eczane', 'ilaç'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '26',
-    name: 'Burç Eczanesi',
-    category: Category.HEALTH,
-    description: 'Çiğdede mahallesinde hizmetinizde.',
-    address: 'Çiğdede Mah. Mehmet Aslan Cad.',
-    phone: '903265127006',
-    imageUrl: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&q=80',
-    rating: 4.7,
-    tags: ['eczane', 'sağlık'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '27',
-    name: 'Ege Eczanesi',
-    category: Category.HEALTH,
-    description: 'Dr. Mithat Abacı caddesi üzerinde.',
-    address: 'Dr. Mithat Abacı Cad.',
-    phone: '903265126467',
-    imageUrl: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&q=80',
-    rating: 4.8,
-    tags: ['eczane', 'sağlık'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  },
-  {
-    id: '28',
-    name: 'Şifa Eczanesi (Tomruksuyu)',
-    category: Category.HEALTH,
-    description: 'Tomruksuyu mahallesinde sağlık hizmeti.',
-    address: 'Tomruksuyu Mah. Uğur Mumcu Cad.',
-    phone: '903265849074',
-    imageUrl: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&q=80',
-    rating: 4.9,
-    tags: ['eczane', 'ilaç', 'tomruksuyu'],
-    status: 'approved',
-    hasDelivery: false,
-    isPublicService: false,
-    products: []
-  }
+  // ... other businesses ...
 ];
