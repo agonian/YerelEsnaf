@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Tag, MapPin, Search, Plus, Filter, MessageCircle, Trash2, Edit, Home, Car, ShoppingBag, Image, Phone, User } from 'lucide-react';
+import { Tag, MapPin, Search, Plus, Filter, MessageCircle, Trash2, Edit, Home, Car, ShoppingBag, Image, Phone, User, LayoutGrid, List } from 'lucide-react';
 import { ClassifiedAd, ClassifiedCategory, User as UserType, UserRole } from '../types';
 
 interface ClassifiedsBoardProps {
@@ -13,6 +13,7 @@ interface ClassifiedsBoardProps {
 
 const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, onAddAd, onDeleteAd, onOpenAuth }) => {
   const [activeCategory, setActiveCategory] = useState<ClassifiedCategory | 'All'>('All');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // New State for View Mode
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -97,36 +98,44 @@ const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, o
 
   const getCategoryIcon = (cat: ClassifiedCategory) => {
       switch(cat) {
-          case ClassifiedCategory.REAL_ESTATE: return <Home size={16} />;
-          case ClassifiedCategory.VEHICLE: return <Car size={16} />;
-          case ClassifiedCategory.SECOND_HAND: return <ShoppingBag size={16} />;
-          default: return <Tag size={16} />;
+          case ClassifiedCategory.REAL_ESTATE: return <Home size={12} />;
+          case ClassifiedCategory.VEHICLE: return <Car size={12} />;
+          case ClassifiedCategory.SECOND_HAND: return <ShoppingBag size={12} />;
+          default: return <Tag size={12} />;
       }
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-20">
+    <div className="max-w-7xl mx-auto space-y-4 pb-24">
       
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
-         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/10 skew-x-12 translate-x-10"></div>
+      {/* Header - Compact */}
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-xl p-6 text-white shadow-md relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
          <div className="relative z-10">
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-              <Tag />
-              Pazar Yeri & Seri İlanlar
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Tag size={24} />
+              Pazar Yeri
             </h1>
-            <p className="text-emerald-100 max-w-xl">
-              İkinci el eşya, vasıta ve emlak ilanlarınızı ücretsiz yayınlayın, alıcılarla buluşun.
+            <p className="text-emerald-100 text-sm opacity-90">
+              İkinci el, emlak ve vasıta ilanları.
             </p>
          </div>
+         <button 
+              onClick={handleOpenCreateModal}
+              className="bg-white text-emerald-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-emerald-50 transition-colors shadow-sm text-sm whitespace-nowrap w-fit z-10"
+            >
+               <Plus size={16} /> <span>İlan Ver</span>
+         </button>
+         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/10 skew-x-12 translate-x-10 pointer-events-none"></div>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-         <div className="bg-white p-1 rounded-xl shadow-sm border border-slate-200 flex overflow-x-auto no-scrollbar max-w-full md:w-auto">
+      {/* Controls Bar */}
+      <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-3 items-center justify-between sticky top-16 z-20">
+         
+         {/* Categories - Compact */}
+         <div className="flex overflow-x-auto no-scrollbar w-full md:w-auto gap-2 pb-1 md:pb-0">
             <button 
               onClick={() => setActiveCategory('All')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeCategory === 'All' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap border ${activeCategory === 'All' ? 'bg-emerald-600 text-white border-emerald-600' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
             >
                Tümü
             </button>
@@ -134,93 +143,144 @@ const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, o
                 <button 
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeCategory === cat ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap border ${activeCategory === cat ? 'bg-emerald-600 text-white border-emerald-600' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                 >
                    {getCategoryIcon(cat)} {cat}
                 </button>
             ))}
          </div>
 
-         <div className="flex gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
+         <div className="flex gap-2 w-full md:w-auto items-center">
+            {/* Search */}
+            <div className="relative flex-1 md:w-56">
                <input 
                  type="text" 
                  placeholder="İlan ara..." 
                  value={searchTerm}
                  onChange={e => setSearchTerm(e.target.value)}
-                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                 className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-slate-50 focus:bg-white"
                />
-               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             </div>
-            <button 
-              onClick={handleOpenCreateModal}
-              className="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 transition-colors whitespace-nowrap"
-            >
-               <Plus size={18} /> <span>İlan Ver</span>
-            </button>
+
+            {/* View Toggle */}
+            <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 shrink-0">
+                <button 
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+                    title="Izgara Görünümü"
+                >
+                    <LayoutGrid size={16} />
+                </button>
+                <button 
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+                    title="Liste Görünümü"
+                >
+                    <List size={16} />
+                </button>
+            </div>
          </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-         {filteredAds.length > 0 ? (
-           filteredAds.map(ad => (
-             <div key={ad.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all group">
-                <div className="h-48 relative bg-slate-100">
-                    <img src={ad.imageUrl} alt={ad.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[10px] font-bold text-slate-800 flex items-center gap-1 shadow-sm">
-                        {getCategoryIcon(ad.category)} {ad.category}
+      {/* --- ADS LISTING --- */}
+      {filteredAds.length > 0 ? (
+          <div className={
+              viewMode === 'grid' 
+                ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4" 
+                : "flex flex-col gap-3"
+          }>
+           {filteredAds.map(ad => (
+             <div 
+                key={ad.id} 
+                className={`bg-white rounded-lg border border-slate-200 overflow-hidden hover:shadow-md transition-all group relative ${
+                    viewMode === 'list' ? 'flex flex-row h-32 md:h-40' : 'flex flex-col'
+                }`}
+             >
+                {/* Image Section */}
+                <div className={`bg-slate-100 relative overflow-hidden ${
+                    viewMode === 'list' ? 'w-32 md:w-48 shrink-0' : 'aspect-[4/3] w-full'
+                }`}>
+                    <img src={ad.imageUrl} alt={ad.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    
+                    {/* Badge */}
+                    <div className="absolute top-1.5 left-1.5 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] font-bold text-white flex items-center gap-1 shadow-sm">
+                        {getCategoryIcon(ad.category)} <span className={viewMode === 'grid' ? 'hidden md:inline' : ''}>{ad.category}</span>
                     </div>
+
+                    {/* Delete Button (Owner/Admin) */}
                     {(currentUser && (currentUser.id === ad.ownerId || currentUser.role === UserRole.ADMIN)) && (
                         <button 
                             onClick={(e) => handleDeleteClick(e, ad.id)}
-                            className="absolute top-2 right-2 p-1.5 bg-white rounded-full text-red-500 shadow-md hover:bg-red-50"
+                            className="absolute top-1.5 right-1.5 p-1 bg-white/90 rounded-full text-red-500 shadow-sm hover:bg-white"
                         >
-                            <Trash2 size={16} />
+                            <Trash2 size={12} />
                         </button>
                     )}
                 </div>
                 
-                <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-slate-900 line-clamp-1 text-lg">{ad.title}</h3>
+                {/* Content Section */}
+                <div className={`p-3 flex flex-col flex-1 ${viewMode === 'list' ? 'justify-between' : ''}`}>
+                    <div>
+                        <div className="flex justify-between items-start gap-1 mb-1">
+                            <h3 className="font-bold text-slate-800 text-sm leading-tight line-clamp-2">{ad.title}</h3>
+                        </div>
+                        <p className="text-emerald-600 font-bold text-base md:text-lg mb-1">{ad.price.toLocaleString('tr-TR')} TL</p>
+                        
+                        {/* Description - Show only in List view or limited in Grid */}
+                        {viewMode === 'list' && (
+                            <p className="text-slate-500 text-xs line-clamp-2 mb-2 hidden md:block">{ad.description}</p>
+                        )}
                     </div>
-                    <p className="text-emerald-600 font-bold text-xl mb-2">{ad.price.toLocaleString('tr-TR')} TL</p>
-                    <p className="text-slate-500 text-sm line-clamp-2 mb-4 h-10">{ad.description}</p>
                     
-                    <div className="flex items-center gap-2 text-xs text-slate-400 mb-4">
-                        <MapPin size={12} /> {ad.location}
-                        <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                        <span>{new Date(ad.createdAt).toLocaleDateString('tr-TR')}</span>
-                    </div>
+                    <div className="mt-auto">
+                        <div className="flex items-center gap-1 text-[10px] text-slate-400 mb-2">
+                            <MapPin size={10} /> <span className="truncate max-w-[100px]">{ad.location}</span>
+                            <span className="w-0.5 h-0.5 bg-slate-300 rounded-full"></span>
+                            <span className="shrink-0">{new Date(ad.createdAt).toLocaleDateString('tr-TR')}</span>
+                        </div>
 
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                             <User size={14} className="text-slate-400" /> {ad.contactName}
-                         </div>
-                         <a 
-                            href={`https://wa.me/${ad.contactPhone}`} 
-                            target="_blank"
-                            rel="noreferrer"
-                            className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1"
-                         >
-                            <MessageCircle size={16} /> Mesaj
-                         </a>
+                        {viewMode === 'list' ? (
+                             <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                                 <div className="flex items-center gap-1 text-xs font-semibold text-slate-700">
+                                     <User size={12} className="text-slate-400" /> {ad.contactName}
+                                 </div>
+                                 <a 
+                                    href={`https://wa.me/${ad.contactPhone}`} 
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1"
+                                 >
+                                    <MessageCircle size={14} /> Mesaj
+                                 </a>
+                             </div>
+                        ) : (
+                             // Grid View Footer (Minimal)
+                             <a 
+                                href={`https://wa.me/${ad.contactPhone}`} 
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full border border-slate-200 text-slate-600 text-[10px] font-bold py-1.5 rounded flex items-center justify-center gap-1 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors"
+                             >
+                                <MessageCircle size={12} /> Mesaj Gönder
+                             </a>
+                        )}
                     </div>
                 </div>
              </div>
            ))
-         ) : (
-            <div className="col-span-full py-16 text-center bg-white rounded-xl border border-dashed border-slate-300">
-               <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                  <Tag size={32} />
-               </div>
-               <h3 className="text-lg font-bold text-slate-700">İlan Bulunamadı</h3>
-               <p className="text-slate-500 mb-6">Bu kategoride henüz ilan yok. İlk ilanı sen ekle!</p>
-               <button onClick={handleOpenCreateModal} className="text-emerald-600 font-bold hover:underline">Hemen İlan Ver</button>
+          }
+         </div>
+      ) : (
+        <div className="py-16 text-center bg-white rounded-xl border border-dashed border-slate-300">
+            <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                <Tag size={32} />
             </div>
-         )}
-      </div>
+            <h3 className="text-lg font-bold text-slate-700">İlan Bulunamadı</h3>
+            <p className="text-slate-500 mb-6">Bu kategoride henüz ilan yok. İlk ilanı sen ekle!</p>
+            <button onClick={handleOpenCreateModal} className="text-emerald-600 font-bold hover:underline">Hemen İlan Ver</button>
+        </div>
+      )}
 
       {/* Create Modal */}
       {isModalOpen && (
