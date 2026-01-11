@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, ShoppingBag, Calendar, LogIn, User, Shield, LayoutDashboard, Briefcase, Menu, X, LogOut, ChevronRight, UserCircle, Settings, Tag, Map } from 'lucide-react';
+import { MapPin, ShoppingBag, Calendar, LogIn, User, Shield, LayoutDashboard, Briefcase, Menu as MenuIcon, X, LogOut, ChevronRight, UserCircle, Settings, Tag, Map, Grid } from 'lucide-react';
 import { UserRole, User as UserType } from '../types';
 
 interface NavbarProps {
@@ -19,17 +19,32 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
     setIsMenuOpen(false);
   }, [currentView]);
 
-  const navItems = [
-    { id: 'explore', label: 'Keşfet', icon: <MapPin /> },
-    { id: 'deals', label: 'Fırsatlar', icon: <ShoppingBag /> },
-    { id: 'classifieds', label: 'Pazar', icon: <Tag /> },
-    { id: 'jobs', label: 'İş İlanı', icon: <Briefcase /> },
-    { id: 'tours', label: 'Turlar', icon: <Map /> }, // Added Tours
-    { id: 'planner', label: 'Asistan', icon: <Calendar /> },
+  // All Navigation Items
+  const allNavItems = [
+    { id: 'explore', label: 'Keşfet', icon: <MapPin />, color: 'text-indigo-600', bg: 'bg-indigo-100' },
+    { id: 'deals', label: 'Fırsatlar', icon: <ShoppingBag />, color: 'text-pink-600', bg: 'bg-pink-100' },
+    { id: 'classifieds', label: 'Pazar', icon: <Tag />, color: 'text-emerald-600', bg: 'bg-emerald-100' },
+    { id: 'jobs', label: 'İş İlanı', icon: <Briefcase />, color: 'text-blue-600', bg: 'bg-blue-100' },
+    { id: 'tours', label: 'Turlar', icon: <Map />, color: 'text-orange-600', bg: 'bg-orange-100' },
+    { id: 'planner', label: 'Asistan', icon: <Calendar />, color: 'text-purple-600', bg: 'bg-purple-100' },
   ];
 
-  // Helper to check if the last tab (Account) should be active
-  const isAccountTabActive = currentView === 'business_dashboard' || currentView === 'admin';
+  // Items visible on the fixed mobile bottom bar (Limited to 4 + Menu)
+  // We prioritize: Explore, Classifieds, (MENU), Jobs, Account
+  const mobileBottomBarItems = [
+    { id: 'explore', label: 'Keşfet', icon: <MapPin /> },
+    { id: 'classifieds', label: 'Pazar', icon: <Tag /> },
+    // Middle slot is reserved for MENU
+    { id: 'jobs', label: 'İş İlanı', icon: <Briefcase /> },
+    // Last slot is reserved for ACCOUNT
+  ];
+
+  // Items to show inside the "Menu" Grid (Secondary Items + Shortcuts)
+  const menuGridItems = [
+    { id: 'tours', label: 'Turlar', icon: <Map />, desc: 'Gezi & Organizasyon' },
+    { id: 'deals', label: 'Fırsatlar', icon: <ShoppingBag />, desc: 'Günün İndirimleri' },
+    { id: 'planner', label: 'Asistan', icon: <Calendar />, desc: 'Akıllı Planlayıcı' },
+  ];
 
   const handleAccountClick = () => {
     if (!currentUser) {
@@ -74,7 +89,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center space-x-1">
               <div className="flex space-x-1 bg-slate-50 p-1 rounded-lg border border-slate-100">
-                {navItems.map((item) => (
+                {allNavItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setView(item.id)}
@@ -149,162 +164,220 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, currentUser, onOp
         </div>
       </nav>
 
-      {/* --- MOBILE BOTTOM NAVIGATION BAR (App Layout) --- */}
+      {/* --- MOBILE BOTTOM NAVIGATION BAR (Improved) --- */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 pb-safe">
-          {/* Use flex and overflow-x-auto to handle more items without shrinking too much */}
-          <div className="flex items-center h-16 overflow-x-auto no-scrollbar px-2">
-            {navItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setView(item.id)}
-                    className={`flex flex-col items-center justify-center space-y-1 relative group min-w-[64px] ${
-                      currentView === item.id ? 'text-indigo-600' : 'text-slate-400'
-                    }`}
-                  >
-                    {/* Active Indicator Top Line */}
-                    {currentView === item.id && (
-                        <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-600 rounded-b-full"></span>
-                    )}
-                    
-                    {React.cloneElement(item.icon as React.ReactElement, { 
-                        size: 20, 
-                        strokeWidth: currentView === item.id ? 2.5 : 2,
-                        className: "transition-transform group-active:scale-90"
-                    })}
-                    <span className="text-[9px] font-medium leading-none">{item.label}</span>
-                  </button>
-            ))}
+          <div className="grid grid-cols-5 h-16 relative">
             
-            {/* Last Tab: Account / Login */}
+            {/* 1. Explore */}
             <button
-                onClick={handleAccountClick}
-                className={`flex flex-col items-center justify-center space-y-1 relative group min-w-[64px] ${
-                    isAccountTabActive || isMenuOpen ? 'text-indigo-600' : 'text-slate-400'
+                onClick={() => setView(mobileBottomBarItems[0].id)}
+                className={`flex flex-col items-center justify-center space-y-1 relative group ${
+                    currentView === mobileBottomBarItems[0].id ? 'text-indigo-600' : 'text-slate-400'
                 }`}
             >
-                {/* Active Indicator */}
-                {isAccountTabActive && (
+                {currentView === mobileBottomBarItems[0].id && (
                     <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-600 rounded-b-full"></span>
                 )}
+                <MapPin size={22} strokeWidth={currentView === mobileBottomBarItems[0].id ? 2.5 : 2} />
+                <span className="text-[10px] font-medium leading-none">Keşfet</span>
+            </button>
 
-                {currentUser ? (
-                    <UserCircle size={20} strokeWidth={isAccountTabActive ? 2.5 : 2} className="transition-transform group-active:scale-90" />
-                ) : (
-                    <LogIn size={20} className="transition-transform group-active:scale-90" />
+            {/* 2. Classifieds */}
+            <button
+                onClick={() => setView(mobileBottomBarItems[1].id)}
+                className={`flex flex-col items-center justify-center space-y-1 relative group ${
+                    currentView === mobileBottomBarItems[1].id ? 'text-indigo-600' : 'text-slate-400'
+                }`}
+            >
+                {currentView === mobileBottomBarItems[1].id && (
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-600 rounded-b-full"></span>
                 )}
-                <span className="text-[9px] font-medium leading-none">
+                <Tag size={22} strokeWidth={currentView === mobileBottomBarItems[1].id ? 2.5 : 2} />
+                <span className="text-[10px] font-medium leading-none">Pazar</span>
+            </button>
+
+            {/* 3. CENTER MENU BUTTON (Floating Look) */}
+            <div className="relative -top-5 flex justify-center pointer-events-none">
+                <button 
+                    onClick={() => setIsMenuOpen(true)}
+                    className="pointer-events-auto w-14 h-14 bg-slate-900 rounded-full text-white shadow-lg shadow-slate-300 flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+                >
+                    <Grid size={24} />
+                    {/* <span className="text-[9px] font-bold mt-0.5">Menü</span> */}
+                </button>
+            </div>
+
+            {/* 4. Jobs */}
+            <button
+                onClick={() => setView(mobileBottomBarItems[2].id)}
+                className={`flex flex-col items-center justify-center space-y-1 relative group ${
+                    currentView === mobileBottomBarItems[2].id ? 'text-indigo-600' : 'text-slate-400'
+                }`}
+            >
+                {currentView === mobileBottomBarItems[2].id && (
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-600 rounded-b-full"></span>
+                )}
+                <Briefcase size={22} strokeWidth={currentView === mobileBottomBarItems[2].id ? 2.5 : 2} />
+                <span className="text-[10px] font-medium leading-none">İş İlanı</span>
+            </button>
+
+            {/* 5. Account */}
+            <button
+                onClick={handleAccountClick}
+                className={`flex flex-col items-center justify-center space-y-1 relative group ${
+                    (currentView === 'business_dashboard' || currentView === 'admin' || isMenuOpen) ? 'text-indigo-600' : 'text-slate-400'
+                }`}
+            >
+                {(currentView === 'business_dashboard' || currentView === 'admin') && (
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-600 rounded-b-full"></span>
+                )}
+                {currentUser ? (
+                    <UserCircle size={22} strokeWidth={(currentView === 'business_dashboard' || currentView === 'admin') ? 2.5 : 2} />
+                ) : (
+                    <LogIn size={22} />
+                )}
+                <span className="text-[10px] font-medium leading-none">
                     {currentUser ? 'Hesabım' : 'Giriş'}
                 </span>
             </button>
+
           </div>
       </div>
 
-      {/* --- BOTTOM SHEET MENU (Profile & More) --- */}
-      {/* Only shown if logged in. If not logged in, AuthModal handles it directly. */}
-      {currentUser && (
-          <>
-            {/* Backdrop */}
-            <div 
-                className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] transition-opacity duration-300 md:hidden ${
-                    isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-            />
-            
-            {/* Sheet */}
-            <div className={`fixed bottom-0 left-0 right-0 bg-white z-[100] rounded-t-3xl shadow-2xl transform transition-transform duration-300 md:hidden flex flex-col max-h-[85vh] ${
-                isMenuOpen ? 'translate-y-0' : 'translate-y-full'
-            }`}>
-                {/* Drag Handle Area */}
-                <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setIsMenuOpen(false)}>
-                    <div className="w-12 h-1.5 bg-slate-200 rounded-full"></div>
+      {/* --- UNIVERSAL MENU & PROFILE SHEET --- */}
+      {/* Shown when Menu button is clicked OR Account is clicked (if logged in) */}
+      {/* If not logged in, Account click triggers AuthModal directly via Navbar logic */}
+      
+      <>
+        {/* Backdrop */}
+        <div 
+            className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] transition-opacity duration-300 md:hidden ${
+                isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+        />
+        
+        {/* Sheet */}
+        <div className={`fixed bottom-0 left-0 right-0 bg-white z-[100] rounded-t-3xl shadow-2xl transform transition-transform duration-300 md:hidden flex flex-col max-h-[85vh] ${
+            isMenuOpen ? 'translate-y-0' : 'translate-y-full'
+        }`}>
+            {/* Drag Handle Area */}
+            <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setIsMenuOpen(false)}>
+                <div className="w-12 h-1.5 bg-slate-200 rounded-full"></div>
+            </div>
+
+            <div className="p-6 overflow-y-auto">
+                <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-bold text-slate-800">Menü</h2>
+                        <button onClick={() => setIsMenuOpen(false)} className="bg-slate-100 p-2 rounded-full text-slate-500">
+                            <X size={20} />
+                        </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto">
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-6">
-                         <h2 className="text-xl font-bold text-slate-800">Hesabım</h2>
-                         <button onClick={() => setIsMenuOpen(false)} className="bg-slate-100 p-2 rounded-full text-slate-500">
-                             <X size={20} />
-                         </button>
+                {/* Profile Section (If Logged In) */}
+                {currentUser && (
+                    <div className="bg-slate-50 rounded-2xl p-4 flex items-center gap-4 mb-8 border border-slate-100">
+                        <div className="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-xl font-bold shadow-sm">
+                            {currentUser.name.charAt(0)}
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-slate-900 text-lg leading-tight">{currentUser.name}</h3>
+                            <p className="text-xs text-slate-500 font-medium">
+                            {currentUser.role === 'user' ? 'Bireysel Üye' : currentUser.role === 'business' ? 'İşletme Hesabı' : 'Yönetici'}
+                            </p>
+                        </div>
+                        <button onClick={() => onLogout()} className="p-2 bg-white text-red-500 rounded-lg shadow-sm border border-slate-100">
+                            <LogOut size={18} />
+                        </button>
                     </div>
+                )}
 
-                    {/* Profile Card */}
-                    <div className="bg-indigo-50 rounded-2xl p-4 flex items-center gap-4 mb-6 border border-indigo-100">
-                         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-indigo-600 text-2xl font-bold shadow-sm">
-                             {currentUser.name.charAt(0)}
-                         </div>
-                         <div>
-                             <h3 className="font-bold text-slate-900 text-lg">{currentUser.name}</h3>
-                             <p className="text-xs text-indigo-600 font-medium uppercase tracking-wide bg-white px-2 py-0.5 rounded inline-block mt-1 border border-indigo-50">
-                                {currentUser.role === 'user' ? 'Bireysel Üye' : currentUser.role === 'business' ? 'İşletme Hesabı' : 'Yönetici'}
-                             </p>
-                         </div>
-                    </div>
+                {/* Navigation Grid (Secondary Items) */}
+                <h4 className="font-bold text-slate-400 text-xs uppercase tracking-wider mb-3">Hizmetler</h4>
+                <div className="grid grid-cols-3 gap-3 mb-8">
+                    {menuGridItems.map((item) => {
+                         const navItem = allNavItems.find(i => i.id === item.id);
+                         return (
+                            <button
+                                key={item.id}
+                                onClick={() => { setView(item.id); setIsMenuOpen(false); }}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border border-slate-100 bg-white shadow-sm active:scale-95 transition-all ${
+                                    currentView === item.id ? 'ring-2 ring-indigo-500' : ''
+                                }`}
+                            >
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${navItem?.bg} ${navItem?.color}`}>
+                                    {navItem?.icon}
+                                </div>
+                                <span className="text-xs font-bold text-slate-700">{item.label}</span>
+                            </button>
+                         );
+                    })}
+                </div>
 
-                    {/* Menu Actions */}
-                    <div className="space-y-3">
-                         {currentUser.role === UserRole.BUSINESS && (
-                             <button 
+                {/* Management Section (Business/Admin) */}
+                {(currentUser?.role === UserRole.BUSINESS || currentUser?.role === UserRole.ADMIN) && (
+                    <>
+                        <h4 className="font-bold text-slate-400 text-xs uppercase tracking-wider mb-3">Yönetim</h4>
+                        <div className="space-y-3 mb-6">
+                            {currentUser.role === UserRole.BUSINESS && (
+                                <button 
                                 onClick={() => { setView('business_dashboard'); setIsMenuOpen(false); }}
-                                className="w-full bg-white border border-slate-200 hover:bg-slate-50 p-4 rounded-xl flex items-center gap-4 text-left group transition-all"
-                             >
-                                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg group-hover:scale-110 transition-transform">
-                                     <LayoutDashboard size={20} />
-                                 </div>
-                                 <div className="flex-1">
-                                     <h4 className="font-bold text-slate-800">İşletme Paneli</h4>
-                                     <p className="text-xs text-slate-500">Menü, ürün ve bilgi düzenle</p>
-                                 </div>
-                                 <ChevronRight size={20} className="text-slate-300" />
-                             </button>
-                         )}
+                                className="w-full bg-blue-50 border border-blue-100 hover:bg-blue-100 p-4 rounded-xl flex items-center gap-4 text-left group transition-all"
+                                >
+                                    <div className="bg-white text-blue-600 p-2 rounded-lg">
+                                        <LayoutDashboard size={20} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-blue-900">İşletme Paneli</h4>
+                                        <p className="text-xs text-blue-600">Menü ve ürün düzenle</p>
+                                    </div>
+                                    <ChevronRight size={20} className="text-blue-300" />
+                                </button>
+                            )}
 
-                        {currentUser.role === UserRole.ADMIN && (
-                             <button 
+                            {currentUser.role === UserRole.ADMIN && (
+                                <button 
                                 onClick={() => { setView('admin'); setIsMenuOpen(false); }}
-                                className="w-full bg-white border border-slate-200 hover:bg-slate-50 p-4 rounded-xl flex items-center gap-4 text-left group transition-all"
-                             >
-                                 <div className="bg-purple-100 text-purple-600 p-2 rounded-lg group-hover:scale-110 transition-transform">
-                                     <Shield size={20} />
-                                 </div>
-                                 <div className="flex-1">
-                                     <h4 className="font-bold text-slate-800">Yönetici Paneli</h4>
-                                     <p className="text-xs text-slate-500">Tüm sistem kontrolü</p>
-                                 </div>
-                                 <ChevronRight size={20} className="text-slate-300" />
-                             </button>
-                         )}
-                         
-                         {/* Other Settings (Placeholder) */}
-                         <button className="w-full bg-white border border-slate-200 p-4 rounded-xl flex items-center gap-4 text-left opacity-50 cursor-not-allowed">
-                             <div className="bg-slate-100 text-slate-500 p-2 rounded-lg">
-                                 <Settings size={20} />
-                             </div>
-                             <div className="flex-1">
-                                 <h4 className="font-bold text-slate-800">Ayarlar</h4>
-                                 <p className="text-xs text-slate-500">Profil ve uygulama ayarları</p>
-                             </div>
-                             <span className="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500">Yakında</span>
-                         </button>
-                    </div>
+                                className="w-full bg-purple-50 border border-purple-100 hover:bg-purple-100 p-4 rounded-xl flex items-center gap-4 text-left group transition-all"
+                                >
+                                    <div className="bg-white text-purple-600 p-2 rounded-lg">
+                                        <Shield size={20} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-purple-900">Yönetici Paneli</h4>
+                                        <p className="text-xs text-purple-600">Sistem kontrolü</p>
+                                    </div>
+                                    <ChevronRight size={20} className="text-purple-300" />
+                                </button>
+                            )}
+                        </div>
+                    </>
+                )}
 
-                    {/* Logout Button */}
-                    <button 
-                        onClick={() => { onLogout(); setIsMenuOpen(false); }}
-                        className="w-full mt-6 bg-red-50 text-red-600 p-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-100 transition-colors"
-                    >
-                        <LogOut size={20} />
-                        Çıkış Yap
-                    </button>
-                    
-                    <div className="text-center mt-6 pb-2">
-                        <p className="text-[10px] text-slate-400">Versiyon 1.0.3</p>
+                {/* Settings Placeholder */}
+                <button className="w-full flex items-center gap-3 p-4 rounded-xl text-slate-500 hover:bg-slate-50 transition-colors">
+                    <Settings size={20} />
+                    <span className="font-medium">Uygulama Ayarları</span>
+                </button>
+                
+                {!currentUser && (
+                    <div className="mt-4 p-4 bg-indigo-50 rounded-xl text-center">
+                        <p className="text-sm text-indigo-800 mb-3 font-medium">Tüm özelliklere erişmek için giriş yapın.</p>
+                        <button 
+                            onClick={() => { onOpenAuth(); setIsMenuOpen(false); }}
+                            className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm w-full"
+                        >
+                            Giriş Yap / Kayıt Ol
+                        </button>
                     </div>
+                )}
+                
+                <div className="text-center mt-6 pb-2">
+                    <p className="text-[10px] text-slate-300">Versiyon 1.0.4</p>
                 </div>
             </div>
-          </>
-      )}
+        </div>
+      </>
     </>
   );
 };
