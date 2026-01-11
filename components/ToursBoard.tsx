@@ -101,99 +101,90 @@ const ToursBoard: React.FC<ToursBoardProps> = ({ tours, currentUser, onAddTour, 
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-20">
+    <div className="max-w-6xl mx-auto space-y-4 pb-20">
       
-      {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
-         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/10 skew-x-12 translate-x-10"></div>
-         <div className="relative z-10">
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-              <Map />
+      {/* Minimal Header */}
+      <div className="flex items-center justify-between mb-2 px-1">
+         <div>
+            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <Map className="text-orange-600" size={24} />
               Tur İlanları
             </h1>
-            <p className="text-orange-100 max-w-xl">
-              Yetkili acentelerden en özel gezi rotaları. Güvenle rezervasyon yapın.
-            </p>
-         </div>
-      </div>
-
-      {/* Controls */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-         <div className="flex items-center gap-2 text-slate-500 text-sm">
-            <Info size={18} />
-            <span>Sadece onaylı acenteler ilan verebilir.</span>
+            <p className="text-slate-500 text-xs mt-0.5">Özel gezi rotaları.</p>
          </div>
          <button 
            onClick={handleOpenCreateModal}
-           className="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 transition-colors whitespace-nowrap"
+           className="bg-orange-600 text-white px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 hover:bg-orange-700 transition-colors shadow-sm text-xs"
          >
-            <Plus size={18} /> <span>Tur Ekle</span>
+            <Plus size={16} /> <span>Tur Ekle</span>
          </button>
       </div>
 
+      {/* Info Alert */}
+      <div className="bg-orange-50 border border-orange-100 p-2 rounded-lg text-xs text-orange-800 flex items-center gap-2 mb-4">
+          <Info size={14} className="shrink-0" />
+          <span>Sadece yetkili acenteler ilan verebilir.</span>
+      </div>
+
       {/* List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
          {filteredTours.length > 0 ? (
            filteredTours.map(tour => (
              <div key={tour.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all flex flex-col md:flex-row">
                 {/* Image */}
-                <div className="h-48 md:h-auto md:w-2/5 relative">
+                <div className="h-40 md:h-auto md:w-2/5 relative">
                     <img src={tour.imageUrl} alt={tour.title} className="w-full h-full object-cover" />
-                    <div className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">
+                    <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">
                         {new Date(tour.date).toLocaleDateString('tr-TR')}
                     </div>
                 </div>
                 
                 {/* Content */}
-                <div className="p-5 flex flex-col flex-1">
+                <div className="p-4 flex flex-col flex-1">
                     <div className="flex justify-between items-start">
                         <div>
-                             <h3 className="font-bold text-slate-900 text-lg mb-1">{tour.title}</h3>
-                             <p className="text-sm text-slate-500 flex items-center gap-1 mb-3">
-                                <MapPin size={14} className="text-orange-500" /> {tour.route}
+                             <h3 className="font-bold text-slate-900 text-base mb-1 leading-tight">{tour.title}</h3>
+                             <p className="text-xs text-slate-500 flex items-center gap-1 mb-2">
+                                <MapPin size={12} className="text-orange-500" /> {tour.route}
                              </p>
                         </div>
                         {(currentUser && (currentUser.id === tour.ownerId || currentUser.role === UserRole.ADMIN)) && (
-                            <button onClick={(e) => handleDeleteClick(e, tour.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={18} /></button>
+                            <button onClick={(e) => handleDeleteClick(e, tour.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={16} /></button>
                         )}
                     </div>
 
-                    <div className="bg-slate-50 p-3 rounded-lg text-xs text-slate-600 mb-4 border border-slate-100 flex-1">
-                        <p className="line-clamp-3 mb-2">{tour.description}</p>
+                    <div className="bg-slate-50 p-2 rounded-lg text-xs text-slate-600 mb-3 border border-slate-100 flex-1">
+                        <p className="line-clamp-3 mb-1">{tour.description}</p>
                         {tour.conditions && (
-                            <p className="text-slate-500 italic border-t border-slate-200 pt-2 mt-2">
-                                <span className="font-bold">Şartlar:</span> {tour.conditions}
+                            <p className="text-slate-400 italic text-[10px] pt-1 border-t border-slate-200 mt-1">
+                                {tour.conditions}
                             </p>
                         )}
                     </div>
 
-                    <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
                         <div className="flex flex-col">
-                            <span className="text-xs text-slate-400 font-bold uppercase">Kişi Başı</span>
-                            <span className="text-xl font-bold text-orange-600">{tour.price} TL</span>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">Kişi Başı</span>
+                            <span className="text-lg font-bold text-orange-600">{tour.price} TL</span>
                         </div>
                         <button 
                            onClick={() => handleReservation(tour)}
-                           className="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-sm transition-colors"
+                           className="bg-[#25D366] hover:bg-[#128C7E] text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 text-xs shadow-sm transition-colors"
                         >
-                           <MessageCircle size={18} />
+                           <MessageCircle size={16} />
                            Rezervasyon
                         </button>
-                    </div>
-                    
-                    <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400 flex items-center gap-1">
-                        <Phone size={12} /> {tour.contactName} - {tour.contactPhone}
                     </div>
                 </div>
              </div>
            ))
          ) : (
-            <div className="col-span-full py-16 text-center bg-white rounded-xl border border-dashed border-slate-300">
-               <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                  <Map size={32} />
+            <div className="col-span-full py-12 text-center bg-white rounded-xl border border-dashed border-slate-300">
+               <div className="bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                  <Map size={24} />
                </div>
-               <h3 className="text-lg font-bold text-slate-700">Aktif Tur Yok</h3>
-               <p className="text-slate-500 mb-6">Şu an planlanmış bir tur bulunmuyor.</p>
+               <h3 className="text-sm font-bold text-slate-700">Aktif Tur Yok</h3>
+               <p className="text-xs text-slate-500 mb-4">Şu an planlanmış bir tur bulunmuyor.</p>
             </div>
          )}
       </div>

@@ -13,7 +13,7 @@ interface ClassifiedsBoardProps {
 
 const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, onAddAd, onDeleteAd, onOpenAuth }) => {
   const [activeCategory, setActiveCategory] = useState<ClassifiedCategory | 'All'>('All');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // New State for View Mode
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list'); // Default changed to 'list'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -108,34 +108,31 @@ const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, o
   return (
     <div className="max-w-7xl mx-auto space-y-4 pb-24">
       
-      {/* Header - Compact */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-xl p-6 text-white shadow-md relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
-         <div className="relative z-10">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Tag size={24} />
+      {/* Minimal Header */}
+      <div className="flex items-center justify-between mb-2 px-1">
+         <div>
+            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <Tag className="text-emerald-600" size={24} />
               Pazar Yeri
             </h1>
-            <p className="text-emerald-100 text-sm opacity-90">
-              İkinci el, emlak ve vasıta ilanları.
-            </p>
+            <p className="text-slate-500 text-xs mt-0.5">İkinci el, emlak ve vasıta.</p>
          </div>
          <button 
               onClick={handleOpenCreateModal}
-              className="bg-white text-emerald-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-emerald-50 transition-colors shadow-sm text-sm whitespace-nowrap w-fit z-10"
+              className="bg-emerald-600 text-white px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 hover:bg-emerald-700 transition-colors shadow-sm text-xs"
             >
                <Plus size={16} /> <span>İlan Ver</span>
          </button>
-         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/10 skew-x-12 translate-x-10 pointer-events-none"></div>
       </div>
 
       {/* Controls Bar */}
-      <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-3 items-center justify-between sticky top-16 z-20">
+      <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-2 items-center justify-between sticky top-14 z-20">
          
          {/* Categories - Compact */}
          <div className="flex overflow-x-auto no-scrollbar w-full md:w-auto gap-2 pb-1 md:pb-0">
             <button 
               onClick={() => setActiveCategory('All')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap border ${activeCategory === 'All' ? 'bg-emerald-600 text-white border-emerald-600' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap border ${activeCategory === 'All' ? 'bg-slate-800 text-white border-slate-800' : 'text-slate-600 border-slate-100 bg-slate-50 hover:bg-slate-100'}`}
             >
                Tümü
             </button>
@@ -143,7 +140,7 @@ const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, o
                 <button 
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap border ${activeCategory === cat ? 'bg-emerald-600 text-white border-emerald-600' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap border ${activeCategory === cat ? 'bg-emerald-600 text-white border-emerald-600' : 'text-slate-600 border-slate-100 bg-slate-50 hover:bg-slate-100'}`}
                 >
                    {getCategoryIcon(cat)} {cat}
                 </button>
@@ -152,13 +149,13 @@ const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, o
 
          <div className="flex gap-2 w-full md:w-auto items-center">
             {/* Search */}
-            <div className="relative flex-1 md:w-56">
+            <div className="relative flex-1 md:w-48">
                <input 
                  type="text" 
-                 placeholder="İlan ara..." 
+                 placeholder="Ara..." 
                  value={searchTerm}
                  onChange={e => setSearchTerm(e.target.value)}
-                 className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-slate-50 focus:bg-white"
+                 className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-slate-50 focus:bg-white"
                />
                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             </div>
@@ -187,71 +184,64 @@ const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, o
       {filteredAds.length > 0 ? (
           <div className={
               viewMode === 'grid' 
-                ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4" 
-                : "flex flex-col gap-3"
+                ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" 
+                : "flex flex-col gap-2"
           }>
            {filteredAds.map(ad => (
              <div 
                 key={ad.id} 
                 className={`bg-white rounded-lg border border-slate-200 overflow-hidden hover:shadow-md transition-all group relative ${
-                    viewMode === 'list' ? 'flex flex-row h-32 md:h-40' : 'flex flex-col'
+                    viewMode === 'list' ? 'flex flex-row h-28' : 'flex flex-col'
                 }`}
              >
                 {/* Image Section */}
                 <div className={`bg-slate-100 relative overflow-hidden ${
-                    viewMode === 'list' ? 'w-32 md:w-48 shrink-0' : 'aspect-[4/3] w-full'
+                    viewMode === 'list' ? 'w-28 shrink-0' : 'aspect-[4/3] w-full'
                 }`}>
-                    <img src={ad.imageUrl} alt={ad.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    <img src={ad.imageUrl} alt={ad.title} className="w-full h-full object-cover" loading="lazy" />
                     
                     {/* Badge */}
-                    <div className="absolute top-1.5 left-1.5 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] font-bold text-white flex items-center gap-1 shadow-sm">
-                        {getCategoryIcon(ad.category)} <span className={viewMode === 'grid' ? 'hidden md:inline' : ''}>{ad.category}</span>
+                    <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-sm px-1 py-0.5 rounded text-[8px] font-bold text-white flex items-center gap-1 shadow-sm">
+                        {getCategoryIcon(ad.category)} <span className={viewMode === 'grid' ? 'hidden' : ''}>{ad.category}</span>
                     </div>
 
                     {/* Delete Button (Owner/Admin) */}
                     {(currentUser && (currentUser.id === ad.ownerId || currentUser.role === UserRole.ADMIN)) && (
                         <button 
                             onClick={(e) => handleDeleteClick(e, ad.id)}
-                            className="absolute top-1.5 right-1.5 p-1 bg-white/90 rounded-full text-red-500 shadow-sm hover:bg-white"
+                            className="absolute top-1 right-1 p-1 bg-white/90 rounded-full text-red-500 shadow-sm hover:bg-white z-10"
                         >
-                            <Trash2 size={12} />
+                            <Trash2 size={10} />
                         </button>
                     )}
                 </div>
                 
                 {/* Content Section */}
-                <div className={`p-3 flex flex-col flex-1 ${viewMode === 'list' ? 'justify-between' : ''}`}>
+                <div className={`p-2 flex flex-col flex-1 ${viewMode === 'list' ? 'justify-between py-2' : ''}`}>
                     <div>
-                        <div className="flex justify-between items-start gap-1 mb-1">
-                            <h3 className="font-bold text-slate-800 text-sm leading-tight line-clamp-2">{ad.title}</h3>
-                        </div>
-                        <p className="text-emerald-600 font-bold text-base md:text-lg mb-1">{ad.price.toLocaleString('tr-TR')} TL</p>
-                        
-                        {/* Description - Show only in List view or limited in Grid */}
-                        {viewMode === 'list' && (
-                            <p className="text-slate-500 text-xs line-clamp-2 mb-2 hidden md:block">{ad.description}</p>
-                        )}
+                        <h3 className={`font-bold text-slate-800 leading-tight line-clamp-2 mb-1 ${viewMode === 'list' ? 'text-sm' : 'text-xs'}`}>{ad.title}</h3>
+                        <p className={`text-emerald-600 font-bold ${viewMode === 'list' ? 'text-base' : 'text-sm'}`}>{ad.price.toLocaleString('tr-TR')} TL</p>
                     </div>
                     
                     <div className="mt-auto">
-                        <div className="flex items-center gap-1 text-[10px] text-slate-400 mb-2">
-                            <MapPin size={10} /> <span className="truncate max-w-[100px]">{ad.location}</span>
+                        <div className="flex items-center gap-2 text-[9px] text-slate-400 mb-1.5">
+                            <span className="flex items-center gap-0.5 truncate max-w-[80px]"><MapPin size={9} /> {ad.location}</span>
                             <span className="w-0.5 h-0.5 bg-slate-300 rounded-full"></span>
                             <span className="shrink-0">{new Date(ad.createdAt).toLocaleDateString('tr-TR')}</span>
                         </div>
 
                         {viewMode === 'list' ? (
-                             <div className="flex items-center justify-between pt-2 border-t border-slate-50">
-                                 <div className="flex items-center gap-1 text-xs font-semibold text-slate-700">
-                                     <User size={12} className="text-slate-400" /> {ad.contactName}
+                             <div className="flex items-center justify-between">
+                                 <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-600">
+                                     <User size={10} className="text-slate-400" /> {ad.contactName}
                                  </div>
                                  <a 
                                     href={`https://wa.me/${ad.contactPhone}`} 
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1"
+                                    className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1 border border-emerald-100"
                                  >
-                                    <MessageCircle size={14} /> Mesaj
+                                    <MessageCircle size={12} /> Mesaj
                                  </a>
                              </div>
                         ) : (
@@ -260,9 +250,9 @@ const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, o
                                 href={`https://wa.me/${ad.contactPhone}`} 
                                 target="_blank"
                                 rel="noreferrer"
-                                className="w-full border border-slate-200 text-slate-600 text-[10px] font-bold py-1.5 rounded flex items-center justify-center gap-1 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors"
+                                className="w-full border border-slate-100 bg-slate-50 text-slate-600 text-[9px] font-bold py-1 rounded flex items-center justify-center gap-1 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors"
                              >
-                                <MessageCircle size={12} /> Mesaj Gönder
+                                <MessageCircle size={10} /> Mesaj
                              </a>
                         )}
                     </div>
@@ -272,13 +262,13 @@ const ClassifiedsBoard: React.FC<ClassifiedsBoardProps> = ({ ads, currentUser, o
           }
          </div>
       ) : (
-        <div className="py-16 text-center bg-white rounded-xl border border-dashed border-slate-300">
-            <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                <Tag size={32} />
+        <div className="py-12 text-center bg-white rounded-xl border border-dashed border-slate-300">
+            <div className="bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                <Tag size={24} />
             </div>
-            <h3 className="text-lg font-bold text-slate-700">İlan Bulunamadı</h3>
-            <p className="text-slate-500 mb-6">Bu kategoride henüz ilan yok. İlk ilanı sen ekle!</p>
-            <button onClick={handleOpenCreateModal} className="text-emerald-600 font-bold hover:underline">Hemen İlan Ver</button>
+            <h3 className="text-sm font-bold text-slate-700">İlan Bulunamadı</h3>
+            <p className="text-xs text-slate-500 mb-4">Bu kategoride henüz ilan yok.</p>
+            <button onClick={handleOpenCreateModal} className="text-emerald-600 text-xs font-bold hover:underline">Hemen İlan Ver</button>
         </div>
       )}
 
